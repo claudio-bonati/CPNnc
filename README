@@ -1,0 +1,57 @@
+*************************************************************************
+*********** PROGRAM FOR SIMULATION OF LATTICE CP^(N-1) MODELS ***********
+********************   WITH NON-COMPACT U(1) GAUGE  *********************
+*************************************************************************
+
+** ACTION
+*****************************************************
+
+The partition function is written as Z=\sum_{theta, phi) e^{-S}
+
+S = - N J \sum_{x, mu>0} ( z_x^{dag} e^{i\theta_{x,mu} }z_{x+mu} +c.c.)
+      + K \sum_{plaq} F^2
+
+where F is the lattice field strenght
+
+F_{\mu\nu}(x) = \theta_{\mu}(x) + \theta_{\nu}(x+mu) -\theta_{\mu}(x+\nu) -\theta_{\nu}(x)
+
+The ''plaquette'' term can also be written (in 3d) as 
+
+2K \sum_{plaq} |\nabla\wedge \theta(x)|^2
+
+C^* boundary conditions in all the directions are normally used, periodic b.c.
+can be used by commenting the line
+ 
+#define CSTAR_BC  
+
+in include/macro.h
+
+** CONFIGURE PARAMETERS
+*****************************************************
+
+The value of N is fixed at configure time by the macro N_f so that to simulate
+the CP^4 model one has to use 
+
+./configure N_f=5
+
+The following macro are availbale
+
+N_f         the number of flavours (default 2)
+ST_dim      spacetime dimensionality (default 2)
+
+After the configuration, the compilation is performed as usual by
+make
+
+Defining the macro DEBUG several sanity checks are activated, which
+significantly slow-down the algorithm.
+
+Calling the executable without input file the configuration options are shown
+and the template file "template_input.in" is produced.
+
+
+** INPUT FILE AND SOME CONVENTIONS
+*****************************************************
+
+A template input file is created when calling the executable without input file
+and everything following # (up to carriage return) in the input file is
+interpreted as a comment.
