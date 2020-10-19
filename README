@@ -15,9 +15,9 @@ where F is the lattice field strenght
 
 F_{\mu\nu}(x) = \theta_{\mu}(x) + \theta_{\nu}(x+mu) -\theta_{\mu}(x+\nu) -\theta_{\nu}(x)
 
-The ''plaquette'' term can also be written (in 3d) as 
-
-2K \sum_{plaq} |\nabla\wedge \theta(x)|^2
+Note the different normalization of the plaquette term w.r.t 2010.06311
+[cond-mat.stat-mech]: in that case the coefficient of the sum is K/2 instead of
+K 
 
 C^* boundary conditions in all the directions are normally used, periodic b.c.
 can be used by commenting the line
