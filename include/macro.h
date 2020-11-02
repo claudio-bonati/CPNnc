@@ -3,6 +3,8 @@
 
 #include"../config.h"
 
+//#define DEBUG
+
 #define CSTAR_BC   //C* bounday conditions
 
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields

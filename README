@@ -9,15 +9,11 @@
 The partition function is written as Z=\sum_{theta, phi) e^{-S}
 
 S = - N J \sum_{x, mu>0} ( z_x^{dag} e^{i\theta_{x,mu} }z_{x+mu} +c.c.)
-      + K \sum_{plaq} F^2
+      + (K/2) \sum_{plaq} F^2
 
 where F is the lattice field strenght
 
 F_{\mu\nu}(x) = \theta_{\mu}(x) + \theta_{\nu}(x+mu) -\theta_{\mu}(x+\nu) -\theta_{\nu}(x)
-
-Note the different normalization of the plaquette term w.r.t 2010.06311
-[cond-mat.stat-mech]: in that case the coefficient of the sum is K/2 instead of
-K 
 
 C^* boundary conditions in all the directions are normally used, periodic b.c.
 can be used by commenting the line
