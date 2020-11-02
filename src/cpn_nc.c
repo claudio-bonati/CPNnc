@@ -146,6 +146,7 @@ void print_template_input(void)
     fprintf(fp,"\n");
     fprintf(fp, "J 5.705\n");
     fprintf(fp, "K 2.0\n");
+    fprintf(fp, "phmass 0.0\n");
     fprintf(fp,"\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");

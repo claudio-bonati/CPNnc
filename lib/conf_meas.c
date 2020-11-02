@@ -302,7 +302,8 @@ void perform_measures(Conf *GC,
                             &tildeFminp_long,
                             &tildeFminp_perp);
 
-   fprintf(datafilep, "%.12g %.12g %.12g %.12g %.12g %.12g %.12g", tildeG0, tildeGminp, scalar_coupling, plaqsq, tildeF0, tildeFminp_long, tildeFminp_perp);
+   fprintf(datafilep, "%.12g %.12g %.12g %.12g ", tildeG0, tildeGminp, scalar_coupling, plaqsq);
+   fprintf(datafilep, "%.12g %.12g %.12g", tildeF0, tildeFminp_long, tildeFminp_perp);
    fprintf(datafilep, "\n");
 
    fflush(datafilep);

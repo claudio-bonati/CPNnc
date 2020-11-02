@@ -66,6 +66,7 @@ void readinput(char *in_file, GParam *param)
     unsigned int temp_ui;
 
     param->d_K=0.0;
+    param->d_phmass=0.0;
 
     input=fopen(in_file, "r");  // open the input file
     if(input==NULL)
@@ -120,6 +121,16 @@ void readinput(char *in_file, GParam *param)
                     exit(EXIT_FAILURE);
                     }
                   param->d_K=temp_d;
+                  }
+           else if(strncmp(str, "phmass", 6)==0)
+                  {
+                  err=fscanf(input, "%lf", &temp_d);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  param->d_phmass=temp_d;
                   }
 
            else if(strncmp(str, "sample", 6)==0)
@@ -364,6 +375,7 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
 
     fprintf(fp, "J: %.10lf\n", param->d_J);
     fprintf(fp, "K: %.10lf\n", param->d_K);
+    fprintf(fp, "phmass: %.10lf\n", param->d_phmass);
     fprintf(fp, "\n");
 
     fprintf(fp, "sample:    %d\n", param->d_sample);

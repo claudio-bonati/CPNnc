@@ -261,19 +261,29 @@ int metropolis_for_link(Conf *GC,
     pstaple=0.0;
     }
 
-  old_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*old_theta) ) + 0.5*param->d_K*(2.0*((double)STDIM-1.0)*old_theta*old_theta + 2.0*old_theta*pstaple);
+  old_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*old_theta) );
+  old_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*old_theta*old_theta + 2.0*old_theta*pstaple);
   // we used sum (plaq)^2 = 2*(STDIM-1)*theta^2 + 2*theta*plaqstaple + independent of theta
+  old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
 
   new_theta = old_theta + param->d_epsilon_metro_link*(2.0*casuale()-1);
 
-  new_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*new_theta) ) +0.5*param->d_K*(2.0*((double)STDIM-1.0)*new_theta*new_theta + 2.0*new_theta*pstaple);
+  new_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*new_theta) );
+  new_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*new_theta*new_theta + 2.0*new_theta*pstaple);
+  new_energy+=0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
 
   #ifdef DEBUG
   double old_energy_aux, new_energy_aux;
-  old_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume + (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
+  old_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
+  old_energy_aux +=(0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
+  old_energy_aux += 0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
+
   GC->theta[r][i] = new_theta;
-  new_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume + (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
+  new_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
+  new_energy_aux += (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
+  new_energy_aux += 0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
   GC->theta[r][i] = old_theta;
+
   //printf("%g %g\n", old_energy-new_energy, old_energy-new_energy -(old_energy_aux-new_energy_aux));
   if(fabs(old_energy-new_energy -(old_energy_aux-new_energy_aux))>1.0e-10 )
     {

@@ -10,10 +10,13 @@ The partition function is written as Z=\sum_{theta, phi) e^{-S}
 
 S = - N J \sum_{x, mu>0} ( z_x^{dag} e^{i\theta_{x,mu} }z_{x+mu} +c.c.)
       + (K/2) \sum_{plaq} F^2
+      + m^2/2 \sum_{x,mu>0} \theta_{\mu}(x)^2
 
 where F is the lattice field strenght
 
 F_{\mu\nu}(x) = \theta_{\mu}(x) + \theta_{\nu}(x+mu) -\theta_{\mu}(x+\nu) -\theta_{\nu}(x)
+
+Note that the photon mass term explictly breaks gauge invariance
 
 C^* boundary conditions in all the directions are normally used, periodic b.c.
 can be used by commenting the line

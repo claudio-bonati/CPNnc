@@ -13,6 +13,7 @@ typedef struct GParam {
   // simulation parameters
   double d_J;
   double d_K;
+  double d_phmass;
 
   // simulation details
   int d_sample;
