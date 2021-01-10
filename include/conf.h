@@ -20,7 +20,6 @@ typedef struct Conf {
   Vec *phi;          // [volume]
 
   FMatrix *Qh;          // [volume]
-  double *F;  // [volume]
   } Conf;
 
 
@@ -93,11 +92,6 @@ void compute_flavour_observables(Conf const * const GC,
                                  GParam const * const param,
                                  double *tildeG0,
                                  double *tildeGminp);
-void compute_plaq_corrlengths(Conf const * const GC,
-                              GParam const * const param,
-                              double *tildeF0,
-                              double *tildeFminp_long,
-                              double *tildeFminp_perp);
 void perform_measures(Conf *GC,
                       GParam const * const param,
                       Geometry const * const geo,

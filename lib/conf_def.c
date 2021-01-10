@@ -54,13 +54,6 @@ void init_conf(Conf *GC,
     exit(EXIT_FAILURE);
     }
 
-  err=posix_memalign((void**) &(GC->F), (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
-  if(err!=0)
-    {
-    fprintf(stderr, "Problems in allocating the lattice! (%s, %d)\n", __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-    }
-
   // initialize lattice
   if(param->d_start==0) // ordered start
     {
@@ -233,7 +226,6 @@ void free_conf(Conf *GC, GParam const * const param)
   free(GC->phi);
 
   free(GC->Qh);
-  free(GC->F);
   }
 
 

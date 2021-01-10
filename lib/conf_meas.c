@@ -216,56 +216,6 @@ void compute_flavour_observables(Conf const * const GC,
   }
 
 
-// compute field strenght correlations
-//
-// GC->F needs to be initialized before calling this function
-//
-// tildeF0, tildeFminp_long, tildeFminp_per are used to compute the 2nd momentum correlation function
-// for the longitudinal and perpendicular components
-//
-void compute_plaq_corrlengths(Conf const * const GC,
-                              GParam const * const param,
-                              double *tildeF0,
-                              double *tildeFminp_long,
-                              double *tildeFminp_perp)
-  {
-  int coord[STDIM];
-  long r;
-  const double p = 2.0*PI/(double)param->d_size[1];
-  double tF;
-  double complex tFl, tFp;
-
-  #if STDIM>2
-    if(param->d_size[1]!=param->d_size[2])
-      {
-      fprintf(stderr, "The function compute_plaq_corrlengths requires size[1]==size[2] (%s, %d)\n", __FILE__, __LINE__);
-      exit(EXIT_FAILURE);
-      }
-  #endif
-
-  tF=0.0;
-  tFl=0.0+0.0*I;
-  tFp=0.0+0.0*I;
-
-  // compute wall sums
-  for(r=0; r<param->d_volume; r++)
-     {
-     si_to_cart(coord, r, param);
-
-     tFl+=((double complex) GC->F[r]) * cexp(I * (double)coord[1] * p);
-     #if STDIM>2
-       tFp+=((double complex) GC->F[r]) * cexp(I * (double)coord[2] * p);
-     #endif
-
-     tF+=GC->F[r];
-     }
-
-  *tildeF0=tF*tF*param->d_inv_vol;
-  *tildeFminp_long=creal(tFl*conj(tFl))*param->d_inv_vol;
-  *tildeFminp_perp=creal(tFp*conj(tFp))*param->d_inv_vol;
-  }
-
-
 void perform_measures(Conf *GC,
                       GParam const * const param,
                       Geometry const * const geo,
@@ -275,8 +225,6 @@ void perform_measures(Conf *GC,
 
    double tildeG0, tildeGminp;
    double scalar_coupling, plaqsq;
-   double tildeF0, tildeFminp_long, tildeFminp_perp;
-
 
    for(r=0; r<(param->d_volume); r++)
       {
@@ -291,19 +239,7 @@ void perform_measures(Conf *GC,
    scalar_coupling=higgs_interaction(GC, geo, param);
    plaqsq=plaquettesq(GC, geo, param);
 
-   for(r=0; r<param->d_volume; r++)
-      {
-      GC->F[r] = plaquette_single(GC, geo, r, 0, 1);
-      }
-
-   compute_plaq_corrlengths(GC,
-                            param,
-                            &tildeF0,
-                            &tildeFminp_long,
-                            &tildeFminp_perp);
-
    fprintf(datafilep, "%.12g %.12g %.12g %.12g ", tildeG0, tildeGminp, scalar_coupling, plaqsq);
-   fprintf(datafilep, "%.12g %.12g %.12g", tildeF0, tildeFminp_long, tildeFminp_perp);
    fprintf(datafilep, "\n");
 
    fflush(datafilep);
