@@ -320,6 +320,7 @@ void update(Conf * GC,
    // metropolis on links
    asum_link=0;
    #ifndef LINKS_FIXED_TO_ONE
+     #ifndef TEMPORAL_GAUGE
      for(r=0; r<param->d_volume; r++)
         {
         for(dir=0; dir<STDIM; dir++)
@@ -327,6 +328,15 @@ void update(Conf * GC,
            asum_link+=metropolis_for_link(GC, geo, param, r, dir);
            }
         }
+     #else
+      for(r=0; r<param->d_volume; r++)
+        {
+        for(dir=1; dir<STDIM; dir++)
+           {
+           asum_link+=metropolis_for_link(GC, geo, param, r, dir);
+           }
+        }
+     #endif
    #endif
    *acc_link=((double)asum_link)*param->d_inv_vol;
    *acc_link/=(double)STDIM;

@@ -107,6 +107,13 @@ void init_conf(Conf *GC,
           }
        }
   #endif
+
+  #ifdef TEMPORAL_GAUGE
+    for(r=0; r<(param->d_volume); r++)
+       {
+       GC->theta[r][0]=0.0;
+       }
+  #endif
   }
 
 

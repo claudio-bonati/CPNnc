@@ -201,6 +201,10 @@ int main (int argc, char **argv)
          printf("\n\tLINKS FIXED TO 1\n");
       #endif
 
+      #ifdef TEMPORAL_GAUGE
+         printf("\n\tTEMPORAL GAUGE\n");
+      #endif
+
       printf("\n");
 
       #ifdef __INTEL_COMPILER

@@ -3,11 +3,19 @@
 
 #include"../config.h"
 
-//#define DEBUG
+//#define DEBUG  // activate some debug tests
 
 #define CSTAR_BC   //C* bounday conditions
 
+//#define TEMPORAL_GAUGE  // fix theta=0 on temporal links
+
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
+
+#ifdef TEMPORAL_GAUGE
+  #ifndef CSTAR_BC
+    #error "TEMPORAL_GAUGE can be defined only with C* boundary conditions"
+  #endif
+#endif
 
 // function to access matrix elements
 #define m(X,Y) ((X)*NFLAVOUR + (Y))
