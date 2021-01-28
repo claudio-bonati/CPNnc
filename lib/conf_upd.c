@@ -339,7 +339,12 @@ void update(Conf * GC,
      #endif
    #endif
    *acc_link=((double)asum_link)*param->d_inv_vol;
+
+   #ifndef TEMPORAL_GAUGE
    *acc_link/=(double)STDIM;
+   #else
+   *acc_link/=(double)(STDIM-1);
+   #endif
 
    // metropolis on phi
    asum_site=0;
