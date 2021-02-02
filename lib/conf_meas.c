@@ -215,6 +215,47 @@ void compute_flavour_observables(Conf const * const GC,
   *tildeGminp=retr_FMatrix(&tmp1)*param->d_inv_vol;
   }
 
+// compute some susceptibilities related to gauge fields
+//
+// chiA = (1/volume) | \sum_x \vec{A}_x e^(ip*x) |^2
+// with p = (pi/L0, pi/L1, pi/L_2...) to take into account C* bc
+//
+// chiA2 = (1/volume) (sum_x \vec{A}_x^2)^2
+void compute_gauge_susc(Conf const * const GC,
+                        GParam const * const param,
+                        double *chiA,
+                        double *chiA2)
+  {
+  double complex vc[STDIM];
+  double suma2;
+  int i, r, coord[STDIM];
+
+  suma2=0.0;
+  for(i=0; i<STDIM; i++)
+     {
+     vc[i]=0.0+0.0*I;
+     }
+
+  for(r=0; r<(param->d_volume); r++)
+     {
+     si_to_cart(coord, r, param);
+
+     for(i=0; i<STDIM; i++)
+        {
+        suma2+=(GC->theta[r][i])*(GC->theta[r][i]);
+
+        vc[i]+=(GC->theta[r][i])*cexp(I * (double)coord[i] * PI / (double)param->d_size[i]);
+        }
+     }
+
+  *chiA2=suma2*suma2/(double)param->d_volume;
+
+  *chiA=0;
+  for(i=0; i<STDIM; i++)
+     {
+     *chiA += cabs(vc[i])*cabs(vc[i])/(double) param->d_volume;
+     }
+  }
 
 void perform_measures(Conf *GC,
                       GParam const * const param,
@@ -240,6 +281,16 @@ void perform_measures(Conf *GC,
    plaqsq=plaquettesq(GC, geo, param);
 
    fprintf(datafilep, "%.12g %.12g %.12g %.12g ", tildeG0, tildeGminp, scalar_coupling, plaqsq);
+
+   #ifdef TEMPORAL_GAUGE
+   double chiA, chiA2;
+   compute_gauge_susc(GC,
+                      param,
+                      &chiA,
+                      &chiA2);
+   fprintf(datafilep, "%.12g %.12g ", chiA, chiA2);
+   #endif
+
    fprintf(datafilep, "\n");
 
    fflush(datafilep);

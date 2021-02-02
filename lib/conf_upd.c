@@ -369,8 +369,8 @@ void update(Conf * GC,
       unitarize_Vec(&(GC->phi[r]));
       }
 
-   // this prevents theta to overflow if d_K=0
-   if(fabs(param->d_K)<MIN_VALUE)
+   // this prevents theta to overflow if d_K=0 and d_phmass=0
+   if(fabs(param->d_K)<MIN_VALUE && param->d_phmass < MIN_VALUE)
      {
      for(r=0; r<param->d_volume; r++)
         {
