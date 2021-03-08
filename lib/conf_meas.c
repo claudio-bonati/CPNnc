@@ -279,7 +279,7 @@ void perform_measures(Conf *GC,
      compute_gauge_susc(GC,
                         param,
                         &chiA);
-     fprintf(datafilep, "%.12g %.12g ", chiA);
+     fprintf(datafilep, "%.12g ", chiA);
    #endif
 
    fprintf(datafilep, "\n");
