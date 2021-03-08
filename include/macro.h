@@ -7,7 +7,7 @@
 
 #define CSTAR_BC   //C* bounday conditions
 
-#define TEMPORAL_GAUGE  // fix theta=0 on temporal links
+//#define TEMPORAL_GAUGE  // fix theta=0 on temporal links
 
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
 

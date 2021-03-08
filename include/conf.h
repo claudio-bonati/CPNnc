@@ -94,8 +94,7 @@ void compute_flavour_observables(Conf const * const GC,
                                  double *tildeGminp);
 void compute_gauge_susc(Conf const * const GC,
                         GParam const * const param,
-                        double *chiA,
-                        double *chiA2);
+                        double *chiA);
 void perform_measures(Conf *GC,
                       GParam const * const param,
                       Geometry const * const geo,
