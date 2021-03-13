@@ -163,6 +163,36 @@ double higgs_interaction(Conf const * const GC,
   }
 
 
+// compute the violation of the Lorentz condition: \sum_{x} (\sum_{mu}\partial_{\mu} theta_{\mu})^2
+double lorenz_gauge_violation(Conf const * const GC,
+                              Geometry const * const geo,
+                              GParam const * const param)
+   {
+   long r;
+   int i;
+   double ris, tmp;
+
+   ris=0.0;
+   for(r=0; r<param->d_volume; r++)
+      {
+      tmp=0.0;
+      for(i=0; i<STDIM; i++)
+         {
+         #ifdef CSTAR_BC
+           tmp += bcsitep(geo, r, i)*(GC->theta[nnp(geo, r, i)][i]);
+           tmp -= GC->theta[r][i];
+         #else
+           tmp += GC->theta[nnp(geo, r, i)][i];
+           tmp -= GC->theta[r][i];
+         #endif
+         }
+      ris+=tmp*tmp;
+      }
+
+   return ris;
+   }
+
+
 // compute flavour related observables
 //
 // GC->Qh needs to be initialized before calling this function

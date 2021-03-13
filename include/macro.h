@@ -9,11 +9,23 @@
 
 //#define TEMPORAL_GAUGE  // fix theta=0 on temporal links
 
+//#define LORENZ_GAUGE // add (alpha/2)(\sum_{mu} \partial_{mu} theta_{mu})^2 to the energy
+
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
 
 #ifdef TEMPORAL_GAUGE
   #ifndef CSTAR_BC
     #error "TEMPORAL_GAUGE can be defined only with C* boundary conditions"
+  #endif
+
+  #ifdef LORENZ_GAUGE
+    #error "TEMPORAL_GAUGE and LORENZ_GAUGE can not be used togheter"
+  #endif
+#endif
+
+#ifdef LORENZ_GAUGE
+  #ifdef TEMPORAL_GAUGE
+    #error "TEMPORAL_GAUGE and LORENZ_GAUGE can not be used togheter"
   #endif
 #endif
 

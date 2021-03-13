@@ -205,6 +205,10 @@ int main (int argc, char **argv)
          printf("\n\tTEMPORAL GAUGE\n");
       #endif
 
+      #ifdef LORENZ_GAUGE
+         printf("\n\tLORENZ GAUGE\n");
+      #endif
+
       printf("\n");
 
       #ifdef __INTEL_COMPILER
