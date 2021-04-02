@@ -326,7 +326,11 @@ int metropolis_for_link(Conf *GC,
   old_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*old_theta) );
   old_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*old_theta*old_theta + 2.0*old_theta*pstaple);
   // we used sum (plaq)^2 = 2*(STDIM-1)*theta^2 + 2*theta*plaqstaple + independent of theta
-  old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
+  #ifndef COMPACT_MASS
+    old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
+  #else
+    old_energy-= param->d_phmass * param->d_phmass * cos(old_theta);
+  #endif
   #ifdef LORENZ_GAUGE
     // sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap
     old_energy+= alpha*old_theta*old_theta + alpha*old_theta*lstaple;
@@ -336,7 +340,11 @@ int metropolis_for_link(Conf *GC,
 
   new_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*new_theta) );
   new_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*new_theta*new_theta + 2.0*new_theta*pstaple);
-  new_energy+=0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
+  #ifndef COMPACT_MASS
+    new_energy+=0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
+  #else
+    new_energy-= param->d_phmass * param->d_phmass * cos(new_theta);
+  #endif
   #ifdef LORENZ_GAUGE
     new_energy+= alpha*new_theta*new_theta + alpha*new_theta*lstaple;
   #endif
@@ -345,7 +353,11 @@ int metropolis_for_link(Conf *GC,
   double old_energy_aux, new_energy_aux;
   old_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
   old_energy_aux +=(0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
-  old_energy_aux += 0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
+  #ifndef COMPACT_MASS
+    old_energy_aux += 0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
+  #else
+    old_energy_aux -= param->d_phmass * param->d_phmass * cos(old_theta);
+  #endif
   #ifdef LORENZ_GAUGE
     old_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
   #endif
@@ -353,7 +365,11 @@ int metropolis_for_link(Conf *GC,
   GC->theta[r][i] = new_theta;
   new_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
   new_energy_aux += (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
-  new_energy_aux += 0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
+  #ifndef COMPACT_MASS
+    new_energy_aux += 0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
+  #else
+    new_energy_aux -= param->d_phmass * param->d_phmass * cos(new_theta);
+  #endif
   #ifdef LORENZ_GAUGE
     new_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
   #endif
@@ -444,24 +460,28 @@ void update(Conf * GC,
       unitarize_Vec(&(GC->phi[r]));
       }
 
-   // this prevents theta to overflow if d_K=0 and d_phmass=0
-   if(fabs(param->d_K)<MIN_VALUE && param->d_phmass < MIN_VALUE)
-     {
-     for(r=0; r<param->d_volume; r++)
-        {
-        for(dir=0; dir<STDIM; dir++)
-           {
-           while(GC->theta[r][dir]>PI2)
-                {
-                GC->theta[r][dir]-=PI2;
-                }
-           while(GC->theta[r][dir]<0)
-                {
-                GC->theta[r][dir]+=PI2;
-                }
-           }
-        }
-     }
+
+   // this prevents theta to overflow if d_K=0 (no kinetic term for theta) and d_phmass=0
+   // and no lorentz gauge (it is needed with temporal gauge)
+   #ifndef LORENZ_GAUGE
+     if(fabs(param->d_K)<MIN_VALUE && fabs(param->d_phmass) < MIN_VALUE)
+       {
+       for(r=0; r<param->d_volume; r++)
+          {
+          for(dir=0; dir<STDIM; dir++)
+             {
+             while(GC->theta[r][dir]>PI2)
+                  {
+                  GC->theta[r][dir]-=PI2;
+                  }
+             while(GC->theta[r][dir]<-PI2)
+                  {
+                  GC->theta[r][dir]+=PI2;
+                  }
+             }
+          }
+       }
+   #endif
 
    GC->update_index++;
    }

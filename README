@@ -10,7 +10,7 @@ The partition function is written as Z=\sum_{theta, phi) e^{-S}
 
 S = - N J \sum_{x, mu>0} ( z_x^{dag} e^{i\theta_{x,mu} }z_{x+mu} +c.c.)
       + (K/2) \sum_{plaq} F^2
-      + m^2/2 \sum_{x,mu>0} \theta_{\mu}(x)^2
+      + m^2/2 \sum_{x,mu>0} \theta_{x, \mu}^2
 
 where F is the lattice field strenght
 
@@ -23,7 +23,18 @@ can be used by commenting the line
  
 #define CSTAR_BC  
 
-in include/macro.h
+in include/macro.h Other macro that can be used are
+
+DEBUG : several sanity checks are activated, which significantly slow-down the algorithm.
+
+TEMPORAL_GAUGE : gauge fix theta_{x,0}=0 (this can be done only with C^* b.c.)
+
+LORENZ_GAUGE : add (alpha/2)[\sum_{mu} \partial_{mu} theta_{mu}]^2 to the energy (alpha is defined inside conf_upd.c)
+
+LINKS_FIXED_TO_ONE : remove all gauge fields
+
+COMPACT_MASS : the mass term used is -m^2 cos(theta_{x,mu})
+
 
 ** CONFIGURE PARAMETERS
 *****************************************************
@@ -41,8 +52,6 @@ ST_dim      spacetime dimensionality (default 2)
 After the configuration, the compilation is performed as usual by
 make
 
-Defining the macro DEBUG several sanity checks are activated, which
-significantly slow-down the algorithm.
 
 Calling the executable without input file the configuration options are shown
 and the template file "template_input.in" is produced.

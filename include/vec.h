@@ -247,7 +247,8 @@ inline double complex scal_prod_Vec(Vec const * const restrict A, Vec const * co
 // random rotation close to identity
 void rand_rot_Vec(Vec * restrict A, Vec const * const restrict B, double epsilon);
 
-// random rotation close to identity
+
+// random rotation close to identity for a single couple of indices
 void rand_rot_single_Vec(Vec * restrict A, Vec const * const restrict B, double epsilon);
 
 

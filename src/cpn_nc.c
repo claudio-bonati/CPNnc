@@ -209,6 +209,10 @@ int main (int argc, char **argv)
          printf("\n\tLORENZ GAUGE\n");
       #endif
 
+      #ifdef COMPACT_MASS
+         printf("\n\tCOMPACT MASS\n");
+      #endif
+
       printf("\n");
 
       #ifdef __INTEL_COMPILER

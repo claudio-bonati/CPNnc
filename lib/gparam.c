@@ -363,6 +363,34 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
     fprintf(fp, "| Simulation details for cpn_nc |\n");
     fprintf(fp, "+-------------------------------+\n\n");
 
+    #ifdef DEBUG
+     fprintf(fp, "DEBUG mode\n");
+    #endif
+
+    #ifdef CSTAR_BC
+     fprintf(fp, "C^* BOUNDARY CONDITIONS\n");
+    #else
+     fprintf(fp, "PERIODIC BOUNDARY CONDITIONS\n");
+    #endif
+
+    #ifdef LINKS_FIXED_TO_ONE
+     fprintf(fp, "LINKS FIXED TO 1\n");
+    #endif
+
+    #ifdef TEMPORAL_GAUGE
+     fprintf(fp, "TEMPORAL GAUGE\n");
+    #endif
+
+    #ifdef LORENZ_GAUGE
+     fprintf(fp, "LORENZ GAUGE\n");
+    #endif
+
+    #ifdef COMPACT_MASS
+     fprintf(fp, "COMPACT MASS\n");
+    #endif
+
+    fprintf(fp,"\n");
+
     fprintf(fp, "number of flavours: %d\n", NFLAVOUR);
     fprintf(fp, "spacetime dimensionality: %d\n\n", STDIM);
 

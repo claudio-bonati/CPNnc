@@ -127,7 +127,7 @@ void rand_rot_Vec(Vec * restrict A, Vec const * const restrict B, double epsilon
 
 
 
-// random rotation close to identity
+// random rotation close to identity for a single couple of indices
 void rand_rot_single_Vec(Vec * restrict A, Vec const * const restrict B, double epsilon)
   {
   #ifdef DEBUG
