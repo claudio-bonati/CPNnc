@@ -220,7 +220,7 @@ double plaqstaples_for_link(Conf *GC,
 
 
 // staples for the lorenz gauge term of the action
-// sum_x (\sum_i \partial_i \theta_{x,i})^2 = STDIM theta^2 + 2*theta*lorenzstap
+// sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap
 // \partial_i f(x)=f(x+i)-f(x)
 double lorenzstaples_for_link(Conf *GC,
                               Geometry const * const geo,
