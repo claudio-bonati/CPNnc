@@ -105,7 +105,7 @@ void rand_rot_Vec(Vec * restrict A, Vec const * const restrict B, double epsilon
      tmp1=A->comp[i];
      tmp2=A->comp[j];
 
-     c0=(2.0*casuale()-1.0);
+     c0=1.0+(2.0*casuale()-1.0)*epsilon;
      c1=(2.0*casuale()-1.0)*epsilon;
      c2=(2.0*casuale()-1.0)*epsilon;
      c3=(2.0*casuale()-1.0)*epsilon;
@@ -156,7 +156,7 @@ void rand_rot_single_Vec(Vec * restrict A, Vec const * const restrict B, double 
   tmp1=A->comp[i];
   tmp2=A->comp[j];
 
-  c0=(2.0*casuale()-1.0);
+  c0=1.0+(2.0*casuale()-1.0)*epsilon;
   c1=(2.0*casuale()-1.0)*epsilon;
   c2=(2.0*casuale()-1.0)*epsilon;
   c3=(2.0*casuale()-1.0)*epsilon;
