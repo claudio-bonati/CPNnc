@@ -14,12 +14,11 @@ typedef struct Geometry {
 
 
 // these are the functions to be used in shwitching between different indices
-long (*cart_to_si)(int const * const cartcoord, GParam const * const param); // cartesian coordinates -> single index
-void (*si_to_cart)(int *cartcoord, long si, GParam const * const param);     // single index -> cartesian coordinates
+extern long (*cart_to_si)(int const * const cartcoord, GParam const * const param); // cartesian coordinates -> single index
+extern void (*si_to_cart)(int *cartcoord, long si, GParam const * const param);     // single index -> cartesian coordinates
 
 
 // general functions
-void init_indexing_lex(void); // has to be called before init_geometry
 void init_geometry(Geometry *geo, GParam const * const param);
 void free_geometry(Geometry *geo, GParam const * const param);
 

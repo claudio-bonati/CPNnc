@@ -36,7 +36,6 @@ void real_main(char *in_file)
     init_data_file(&datafilep, &param);
 
     // initialize geometry
-    init_indexing_lex();
     init_geometry(&geo, &param);
 
     // initialize configuration

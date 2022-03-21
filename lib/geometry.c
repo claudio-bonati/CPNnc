@@ -10,12 +10,8 @@
 #include"../include/gparam.h"
 
 // single index = lexicographic index
-void init_indexing_lex(void)
-  {
-  cart_to_si = &cart_to_lex;
-  si_to_cart = &lex_to_cart;
-  }
-
+long (*cart_to_si)(int const * const cartcoord, GParam const * const param)=&cart_to_lex; // cartesian coordinates -> single index
+void (*si_to_cart)(int *cartcoord, long si, GParam const * const param)=&lex_to_cart;     // single index -> cartesian coordinates
 
 // initialize geometry
 void init_geometry(Geometry *geo, GParam const * const param)
