@@ -31,10 +31,7 @@ TEMPORAL_GAUGE : gauge fix theta_{x,0}=0 (this can be done only with C^* b.c.)
 
 LORENZ_GAUGE : add (alpha/2)[\sum_{mu} \partial_{mu} theta_{mu}]^2 to the energy (alpha is defined inside conf_upd.c)
 
-LINKS_FIXED_TO_ONE : remove all gauge fields
-
-COMPACT_MASS : the mass term used is -m^2 cos(theta_{x,mu})
-
+LINKS_FIXED_TO_ONE : fix all gauge fielsd theta to zero
 
 ** CONFIGURE PARAMETERS
 *****************************************************

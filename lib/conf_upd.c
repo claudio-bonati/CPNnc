@@ -326,11 +326,7 @@ int metropolis_for_link(Conf *GC,
   old_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*old_theta) );
   old_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*old_theta*old_theta + 2.0*old_theta*pstaple);
   // we used sum (plaq)^2 = 2*(STDIM-1)*theta^2 + 2*theta*plaqstaple + independent of theta
-  #ifndef COMPACT_MASS
-    old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
-  #else
-    old_energy-= param->d_phmass * param->d_phmass * cos(old_theta);
-  #endif
+  old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
   #ifdef LORENZ_GAUGE
     // sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap
     old_energy+= alpha*old_theta*old_theta + alpha*old_theta*lstaple;
@@ -340,47 +336,35 @@ int metropolis_for_link(Conf *GC,
 
   new_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*new_theta) );
   new_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*new_theta*new_theta + 2.0*new_theta*pstaple);
-  #ifndef COMPACT_MASS
-    new_energy+=0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
-  #else
-    new_energy-= param->d_phmass * param->d_phmass * cos(new_theta);
-  #endif
+  new_energy+=0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
   #ifdef LORENZ_GAUGE
     new_energy+= alpha*new_theta*new_theta + alpha*new_theta*lstaple;
   #endif
 
   #ifdef DEBUG
-  double old_energy_aux, new_energy_aux;
-  old_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
-  old_energy_aux +=(0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
-  #ifndef COMPACT_MASS
+    double old_energy_aux, new_energy_aux;
+    old_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
+    old_energy_aux +=(0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
     old_energy_aux += 0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
-  #else
-    old_energy_aux -= param->d_phmass * param->d_phmass * cos(old_theta);
-  #endif
-  #ifdef LORENZ_GAUGE
-    old_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
-  #endif
+    #ifdef LORENZ_GAUGE
+      old_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
+    #endif
 
-  GC->theta[r][i] = new_theta;
-  new_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
-  new_energy_aux += (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
-  #ifndef COMPACT_MASS
+    GC->theta[r][i] = new_theta;
+    new_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
+    new_energy_aux += (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
     new_energy_aux += 0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
-  #else
-    new_energy_aux -= param->d_phmass * param->d_phmass * cos(new_theta);
-  #endif
-  #ifdef LORENZ_GAUGE
-    new_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
-  #endif
-  GC->theta[r][i] = old_theta;
+    #ifdef LORENZ_GAUGE
+      new_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
+    #endif
+    GC->theta[r][i] = old_theta;
 
-  //printf("%g %g\n", old_energy-new_energy, old_energy-new_energy -(old_energy_aux-new_energy_aux));
-  if(fabs(old_energy-new_energy -(old_energy_aux-new_energy_aux))>1.0e-10 )
-    {
-    fprintf(stderr, "Problem in energy in metropolis for link (%s, %d)\n", __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-    }
+    //printf("%g %g\n", old_energy-new_energy, old_energy-new_energy -(old_energy_aux-new_energy_aux));
+    if(fabs(old_energy-new_energy -(old_energy_aux-new_energy_aux))>1.0e-10 )
+      {
+      fprintf(stderr, "Problem in energy in metropolis for link (%s, %d)\n", __FILE__, __LINE__);
+      exit(EXIT_FAILURE);
+      }
   #endif
 
   if(old_energy>new_energy)

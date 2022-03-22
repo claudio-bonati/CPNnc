@@ -385,10 +385,6 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
      fprintf(fp, "LORENZ GAUGE\n");
     #endif
 
-    #ifdef COMPACT_MASS
-     fprintf(fp, "COMPACT MASS\n");
-    #endif
-
     fprintf(fp,"\n");
 
     fprintf(fp, "number of flavours: %d\n", NFLAVOUR);

@@ -13,8 +13,6 @@
 
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
 
-//#define COMPACT_MASS // (m^2/2)theta^2 -> -m^2 cos(theta)
-
 #ifdef TEMPORAL_GAUGE
   #ifndef CSTAR_BC
     #error "TEMPORAL_GAUGE can be defined only with C* boundary conditions"

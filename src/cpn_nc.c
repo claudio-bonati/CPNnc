@@ -145,7 +145,7 @@ void print_template_input(void)
     fprintf(fp,"\n");
     fprintf(fp, "J 5.705\n");
     fprintf(fp, "K 2.0\n");
-    fprintf(fp, "phmass 0.0\n");
+    fprintf(fp, "phmass 1.5\n");
     fprintf(fp,"\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");
@@ -206,10 +206,6 @@ int main (int argc, char **argv)
 
       #ifdef LORENZ_GAUGE
          printf("\n\tLORENZ GAUGE\n");
-      #endif
-
-      #ifdef COMPACT_MASS
-         printf("\n\tCOMPACT MASS\n");
       #endif
 
       printf("\n");
