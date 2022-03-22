@@ -14,6 +14,7 @@ typedef struct GParam {
   double d_J;
   double d_K;
   double d_phmass;
+  double d_gaugefixpar;
 
   // simulation details
   int d_sample;

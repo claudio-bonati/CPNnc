@@ -290,8 +290,7 @@ int metropolis_for_link(Conf *GC,
   double pstaple;
   int acc=0;
 
-  #ifdef LORENZ_GAUGE
-  const double alpha=1.0;
+  #ifdef SOFT_LORENZ_GAUGE
   double lstaple=lorenzstaples_for_link(GC, geo, r, i);
   #endif
 
@@ -327,9 +326,15 @@ int metropolis_for_link(Conf *GC,
   old_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*old_theta*old_theta + 2.0*old_theta*pstaple);
   // we used sum (plaq)^2 = 2*(STDIM-1)*theta^2 + 2*theta*plaqstaple + independent of theta
   old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
-  #ifdef LORENZ_GAUGE
+  #ifdef SOFT_LORENZ_GAUGE
     // sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap
-    old_energy+= alpha*old_theta*old_theta + alpha*old_theta*lstaple;
+    old_energy+= param->d_gaugefixpar * old_theta*old_theta + param->d_gaugefixpar*old_theta*lstaple;
+  #endif
+  #ifdef SOFT_TEMPORAL_GAUGE
+    if(i==0)
+      {
+      old_energy+= (param->d_gaugefixpar/2.0)*old_theta*old_theta;
+      }
   #endif
 
   new_theta = old_theta + param->d_epsilon_metro_link*(2.0*casuale()-1);
@@ -337,8 +342,14 @@ int metropolis_for_link(Conf *GC,
   new_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*new_theta) );
   new_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*new_theta*new_theta + 2.0*new_theta*pstaple);
   new_energy+=0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
-  #ifdef LORENZ_GAUGE
-    new_energy+= alpha*new_theta*new_theta + alpha*new_theta*lstaple;
+  #ifdef SOFT_LORENZ_GAUGE
+    new_energy+= param->d_gaugefixpar*new_theta*new_theta + param->d_gaugefixpar*new_theta*lstaple;
+  #endif
+  #ifdef SOFT_TEMPORAL_GAUGE
+    if(i==0)
+      {
+      new_energy+= (param->d_gaugefixpar/2.0)*new_theta*new_theta;
+      }
   #endif
 
   #ifdef DEBUG
@@ -346,16 +357,28 @@ int metropolis_for_link(Conf *GC,
     old_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
     old_energy_aux +=(0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
     old_energy_aux += 0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
-    #ifdef LORENZ_GAUGE
-      old_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
+    #ifdef SOFT_LORENZ_GAUGE
+      old_energy_aux += 0.5 * param->d_gaugefixpar * lorenz_gauge_violation(GC, geo, param);
+    #endif
+    #ifdef SOFT_TEMPORAL_GAUGE
+      if(i==0)
+        {
+        old_energy_aux += (param->d_gaugefixpar/2.0)*old_theta*old_theta;
+        }
     #endif
 
     GC->theta[r][i] = new_theta;
     new_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
     new_energy_aux += (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
     new_energy_aux += 0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
-    #ifdef LORENZ_GAUGE
-      new_energy_aux += 0.5 * alpha *lorenz_gauge_violation(GC, geo, param);
+    #ifdef SOFT_LORENZ_GAUGE
+      new_energy_aux += 0.5 * param->d_gaugefixpar * lorenz_gauge_violation(GC, geo, param);
+    #endif
+    #ifdef SOFT_TEMPORAL_GAUGE
+      if(i==0)
+        {
+        new_energy_aux += (param->d_gaugefixpar/2.0)*new_theta*new_theta;
+        }
     #endif
     GC->theta[r][i] = old_theta;
 
@@ -395,7 +418,7 @@ void update(Conf * GC,
    // metropolis on links
    asum_link=0;
    #ifndef LINKS_FIXED_TO_ONE
-     #ifndef TEMPORAL_GAUGE
+     #ifndef HARD_TEMPORAL_GAUGE
      for(r=0; r<param->d_volume; r++)
         {
         for(dir=0; dir<STDIM; dir++)
@@ -415,7 +438,7 @@ void update(Conf * GC,
    #endif
    *acc_link=((double)asum_link)*param->d_inv_vol;
 
-   #ifndef TEMPORAL_GAUGE
+   #ifndef HARD_TEMPORAL_GAUGE
    *acc_link/=(double)STDIM;
    #else
    *acc_link/=(double)(STDIM-1);
@@ -447,7 +470,7 @@ void update(Conf * GC,
 
    // this prevents theta to overflow if d_K=0 (no kinetic term for theta) and d_phmass=0
    // and no lorentz gauge (it is needed with temporal gauge)
-   #ifndef LORENZ_GAUGE
+   #ifndef GAUGE_FIX
      if(fabs(param->d_K)<MIN_VALUE && fabs(param->d_phmass) < MIN_VALUE)
        {
        for(r=0; r<param->d_volume; r++)

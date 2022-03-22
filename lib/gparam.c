@@ -132,6 +132,16 @@ void readinput(char *in_file, GParam *param)
                     }
                   param->d_phmass=temp_d;
                   }
+            else if(strncmp(str, "gaugefixpar", 11)==0)
+                  {
+                  err=fscanf(input, "%lf", &temp_d);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  param->d_gaugefixpar=temp_d;
+                  }
 
            else if(strncmp(str, "sample", 6)==0)
                   { 
@@ -377,12 +387,16 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
      fprintf(fp, "LINKS FIXED TO 1\n");
     #endif
 
-    #ifdef TEMPORAL_GAUGE
-     fprintf(fp, "TEMPORAL GAUGE\n");
+    #ifdef HARD_TEMPORAL_GAUGE
+     fprintf(fp, "HARD_TEMPORAL GAUGE\n");
     #endif
 
-    #ifdef LORENZ_GAUGE
-     fprintf(fp, "LORENZ GAUGE\n");
+    #ifdef SOFT_TEMPORAL_GAUGE
+     fprintf(fp, "SOFT_TEMPORAL GAUGE\n");
+    #endif
+
+    #ifdef SOFT_LORENZ_GAUGE
+     fprintf(fp, "SOFT_LORENZ GAUGE\n");
     #endif
 
     fprintf(fp,"\n");
@@ -400,6 +414,10 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
     fprintf(fp, "J: %.10lf\n", param->d_J);
     fprintf(fp, "K: %.10lf\n", param->d_K);
     fprintf(fp, "phmass: %.10lf\n", param->d_phmass);
+    #ifdef GAUGE_FIX
+      fprintf(fp, "gaugefixpar: %.10lf\n", param->d_gaugefixpar);
+    #endif
+
     fprintf(fp, "\n");
 
     fprintf(fp, "sample:    %d\n", param->d_sample);

@@ -146,6 +146,7 @@ void print_template_input(void)
     fprintf(fp, "J 5.705\n");
     fprintf(fp, "K 2.0\n");
     fprintf(fp, "phmass 1.5\n");
+    fprintf(fp, "gaugefixpar 3.5\n");
     fprintf(fp,"\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");
@@ -200,12 +201,16 @@ int main (int argc, char **argv)
          printf("\n\tLINKS FIXED TO 1\n");
       #endif
 
-      #ifdef TEMPORAL_GAUGE
-         printf("\n\tTEMPORAL GAUGE\n");
+      #ifdef HARD_TEMPORAL_GAUGE
+         printf("\n\tHARD_TEMPORAL GAUGE\n");
       #endif
 
-      #ifdef LORENZ_GAUGE
-         printf("\n\tLORENZ GAUGE\n");
+      #ifdef SOFT_TEMPORAL_GAUGE
+         printf("\n\tSOFT_TEMPORAL GAUGE\n");
+      #endif
+
+      #ifdef SOFT_LORENZ_GAUGE
+         printf("\n\tSOFT_LORENZ GAUGE\n");
       #endif
 
       printf("\n");

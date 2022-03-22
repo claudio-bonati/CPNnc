@@ -7,25 +7,55 @@
 
 #define CSTAR_BC   //C* bounday conditions
 
-//#define TEMPORAL_GAUGE  // fix theta=0 on temporal links
+//#define HARD_TEMPORAL_GAUGE  // fix theta=0 on temporal links
+#ifdef HARD_TEMPORAL_GAUGE
+  #define GAUGE_FIX
+#endif
 
-//#define LORENZ_GAUGE // add (alpha/2)(\sum_{mu} \partial_{mu} theta_{mu})^2 to the energy
+//#define SOFT_LORENZ_GAUGE // add (alpha/2)(\sum_{mu} \partial_{mu} theta_{mu})^2 to the energy
+#ifdef SOFT_LORENZ_GAUGE
+  #define GAUGE_FIX
+#endif
+
+//#define SOFT_TEMPORAL_GAUGE  // add (alpha/2) theta_{0}^2 to the energy
+#ifdef SOFT_TEMPORAL_GAUGE
+  #define GAUGE_FIX
+#endif
 
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
 
-#ifdef TEMPORAL_GAUGE
+// CHECKS
+#ifdef HARD_TEMPORAL_GAUGE
   #ifndef CSTAR_BC
-    #error "TEMPORAL_GAUGE can be defined only with C* boundary conditions"
+    #error "HARD_TEMPORAL_GAUGE can be defined only with C* boundary conditions"
   #endif
 
-  #ifdef LORENZ_GAUGE
-    #error "TEMPORAL_GAUGE and LORENZ_GAUGE can not be used togheter"
+  #ifdef SOFT_LORENZ_GAUGE
+    #error "HARD_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
+  #endif
+
+  #ifdef SOFT_TEMPORAL_GAUGE
+    #error "HARD_TEMPORAL_GAUGE and SOFT_TEMPORAL_GAUGE can not be used togheter"
   #endif
 #endif
 
-#ifdef LORENZ_GAUGE
-  #ifdef TEMPORAL_GAUGE
-    #error "TEMPORAL_GAUGE and LORENZ_GAUGE can not be used togheter"
+#ifdef SOFT_LORENZ_GAUGE
+  #ifdef HARD_TEMPORAL_GAUGE
+    #error "HARD_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
+  #endif
+
+  #ifdef SOFT_TEMPORAL_GAUGE
+    #error "SOFT_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
+  #endif
+#endif
+
+#ifdef SOFT_TEMPORAL_GAUGE
+  #ifdef HARD_TEMPORAL_GAUGE
+    #error "HARD_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
+  #endif
+
+  #ifdef SOFT_LORENZ_GAUGE
+    #error "SOFT_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
   #endif
 #endif
 
