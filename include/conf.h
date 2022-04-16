@@ -101,6 +101,18 @@ void perform_measures(Conf *GC,
                       GParam const * const param,
                       Geometry const * const geo,
                       FILE *datafilep);
-
+void compute_gauge_correlators(Conf const * const GC,
+                               GParam const * const param,
+                               double *tildeG1_p1,
+                               double *tildeG1_p2,
+                               double *tildeG2_p1,
+                               double *tildeG2_p2,
+                               double *tildeG3_p0,
+                               double *tildeG3_pmin,
+                               double *disc_p0,
+                               double *disc_pmin);
+void perform_gaugedep_measures(Conf *GC,
+                               GParam const * const param,
+                               FILE *datafilep);
 
 #endif

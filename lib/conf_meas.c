@@ -197,7 +197,7 @@ double lorenz_gauge_violation(Conf const * const GC,
 //
 // GC->Qh needs to be initialized before calling this function
 //
-// tildeG0=Tr[(\sum_x Q_x)(\sum_y Q_y)]/volume
+// tildeG0=ReTr[(\sum_x Q_x)(\sum_y Q_y)]/volume
 // tildeGminp=ReTr[(\sum_x Q_xe^{ipx})(\sum_y Q_ye^{-ipy)]/volume
 //
 // tildeG0 is the susceptibility, tildeGminp is used to compute the 2nd momentum correlation function
@@ -274,6 +274,118 @@ void perform_measures(Conf *GC,
 
    fflush(datafilep);
    }
+
+
+// compute gauge dependent correlators
+//
+// tildeG1_p1=Re[(\sum_x A_{x,0}e^{ip_1x})(\sum_y A_{y,0}e^{-ip_1y)]/volume
+// with p_1=(pi/L_0, pi/L_1, pi/L_2...)
+// and analogously with p_2=(3pi/L_0, pi/L_1, pi/L_2...)
+//
+// tildeG2_p1=Re[(\sum_x A_{x,1}e^{ip_1x})(\sum_y A_{y,1}e^{-ip_1y)]/volume
+// with p_1=(pi/L_0, pi/L_1, pi/L_2...)
+// and analogously with p_2=(3pi/L_0, pi/L_1, pi/L_2...)
+//
+// B_x=sum_{mu} A_{x,mu}^2
+// tildeG3_p0=Re[(\sum_x B_x)(\sum_y B_y)]/volume
+// tildeG3_pmin=Re[(\sum_x B_xe^{i p_min*x})(\sum_y B_ye^{-ip_min*y)]/volume
+// p_min=(2pi/L_0,0,0,...)
+//
+// disc_p0=[\sum_x B_x]/volume
+// disc_pmin=Re[\sum_x B_x e^{i*p_min*x}]/volume
+//
+void compute_gauge_correlators(Conf const * const GC,
+                               GParam const * const param,
+                               double *tildeG1_p1,
+                               double *tildeG1_p2,
+                               double *tildeG2_p1,
+                               double *tildeG2_p2,
+                               double *tildeG3_p0,
+                               double *tildeG3_pmin,
+                               double *disc_p0,
+                               double *disc_pmin)
+  {
+  int i, coord[STDIM];
+  long r;
+  double p1[STDIM], sc, B, forG3_p0;
+  double complex forG1_p1, forG1_p2, forG2_p1, forG2_p2, forG3_pmin;
+
+  for(i=0; i<STDIM; i++)
+     {
+     p1[i]=PI/(double)param->d_size[i];
+     }
+
+  forG1_p1=0.0+I*0.0;
+  forG1_p2=0.0+I*0.0;
+  forG2_p1=0.0+I*0.0;
+  forG2_p2=0.0+I*0.0;
+  forG3_p0=0.0+I*0.0;
+  forG3_pmin=0.0+I*0.0;
+
+  for(r=0; r<(param->d_volume); r++)
+     {
+     si_to_cart(coord, r, param);
+
+     sc=0.0;
+     for(i=0; i<STDIM; i++)
+        {
+        sc+=coord[i]*p1[i];
+        }
+     forG1_p1+=GC->theta[r][0]*cexp(I*sc);
+     forG2_p1+=GC->theta[r][1]*cexp(I*sc);
+
+     sc+=2.0*PI/param->d_size[0]*coord[0];
+     forG1_p2+=GC->theta[r][0]*cexp(I*sc);
+     forG2_p2+=GC->theta[r][1]*cexp(I*sc);
+
+     B=0;
+     for(i=0; i<STDIM; i++)
+        {
+        B+=(GC->theta[r][i])*(GC->theta[r][i]);
+        }
+     forG3_p0+=B;
+     forG3_pmin+=B*cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]);
+     }
+
+  *tildeG1_p1=creal(forG1_p1*conj(forG1_p1))*param->d_inv_vol;
+  *tildeG1_p2=creal(forG1_p2*conj(forG1_p2))*param->d_inv_vol;
+
+  *tildeG2_p1=creal(forG2_p1*conj(forG2_p1))*param->d_inv_vol;
+  *tildeG2_p2=creal(forG2_p2*conj(forG2_p2))*param->d_inv_vol;
+
+  *tildeG3_p0=forG3_p0*forG3_p0*param->d_inv_vol;
+  *tildeG3_pmin=creal(forG3_pmin*conj(forG3_pmin))*param->d_inv_vol;
+
+  *disc_p0=forG3_p0*param->d_inv_vol;
+  *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
+  }
+
+
+void perform_gaugedep_measures(Conf *GC,
+                               GParam const * const param,
+                               FILE *datafilep)
+   {
+   int i;
+   double meas[8];
+
+   compute_gauge_correlators(GC,
+                             param,
+                             &meas[0],
+                             &meas[1],
+                             &meas[2],
+                             &meas[3],
+                             &meas[4],
+                             &meas[5],
+                             &meas[6],
+                             &meas[7]);
+   for(i=0; i<8; i++)
+      {
+      fprintf(datafilep, "%.12g ", meas[i]);
+      }
+   fprintf(datafilep, "\n");
+   fflush(datafilep);
+   }
+
 
 
 #endif
