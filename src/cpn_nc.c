@@ -86,11 +86,7 @@ void real_main(char *in_file)
 
        if(count % param.d_measevery ==0 && count >= param.d_thermal)
          {
-         // gauge invariant measures
          perform_measures(&GC, &param, &geo, datafilep);
-
-         // gauge dependent measures
-         //perform_gaugedep_measures(&GC, &param, datafilep);
          }
 
        // save configuration for backup

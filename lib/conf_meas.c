@@ -246,36 +246,6 @@ void compute_flavour_observables(Conf const * const GC,
   }
 
 
-void perform_measures(Conf *GC,
-                      GParam const * const param,
-                      Geometry const * const geo,
-                      FILE *datafilep)
-   {
-   long r;
-
-   double tildeG0, tildeGminp;
-   double scalar_coupling, plaqsq;
-
-   for(r=0; r<(param->d_volume); r++)
-      {
-      init_FMatrix(&(GC->Qh[r]), &(GC->phi[r]));
-      }
-
-   compute_flavour_observables(GC,
-                               param,
-                               &tildeG0,
-                               &tildeGminp);
-
-   scalar_coupling=higgs_interaction(GC, geo, param);
-   plaqsq=plaquettesq(GC, geo, param);
-
-   fprintf(datafilep, "%.12g %.12g %.12g %.12g ", tildeG0, tildeGminp, scalar_coupling, plaqsq);
-   fprintf(datafilep, "\n");
-
-   fflush(datafilep);
-   }
-
-
 // compute gauge dependent correlators
 //
 // tildeG1_p1=Re[(\sum_x A_{x,0}e^{ip_1x})(\sum_y A_{y,0}e^{-ip_1y)]/volume
@@ -361,13 +331,34 @@ void compute_gauge_correlators(Conf const * const GC,
   }
 
 
-void perform_gaugedep_measures(Conf *GC,
-                               GParam const * const param,
-                               FILE *datafilep)
+void perform_measures(Conf *GC,
+                      GParam const * const param,
+                      Geometry const * const geo,
+                      FILE *datafilep)
    {
+   long r;
    int i;
+
+   double tildeG0, tildeGminp;
+   double scalar_coupling, plaqsq;
    double meas[8];
 
+   for(r=0; r<(param->d_volume); r++)
+      {
+      init_FMatrix(&(GC->Qh[r]), &(GC->phi[r]));
+      }
+
+   compute_flavour_observables(GC,
+                               param,
+                               &tildeG0,
+                               &tildeGminp);
+
+   scalar_coupling=higgs_interaction(GC, geo, param);
+   plaqsq=plaquettesq(GC, geo, param);
+
+   fprintf(datafilep, "%.12g %.12g %.12g %.12g ", tildeG0, tildeGminp, scalar_coupling, plaqsq);
+
+   // gauge dependent measures
    compute_gauge_correlators(GC,
                              param,
                              &meas[0],
@@ -382,10 +373,9 @@ void perform_gaugedep_measures(Conf *GC,
       {
       fprintf(datafilep, "%.12g ", meas[i]);
       }
+
    fprintf(datafilep, "\n");
    fflush(datafilep);
    }
-
-
 
 #endif
