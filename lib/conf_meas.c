@@ -209,7 +209,7 @@ void compute_flavour_observables(Conf const * const GC,
   {
   int coord[STDIM];
   long r;
-  const double p = 2.0*PI/(double)param->d_size[1];
+  const double p = 2.0*PI/(double)param->d_size[0];
   FMatrix Q, Qp, Qmp, tmp1, tmp2;
 
   // Q =sum_x Q_x
@@ -228,10 +228,10 @@ void compute_flavour_observables(Conf const * const GC,
 
      si_to_cart(coord, r, param);
 
-     times_equal_complex_FMatrix(&tmp1, cexp(I*((double)coord[1])*p));
+     times_equal_complex_FMatrix(&tmp1, cexp(I*((double)coord[0])*p));
      plus_equal_FMatrix(&Qp, &tmp1);
 
-     times_equal_complex_FMatrix(&tmp2, cexp(-I*((double)coord[1])*p));
+     times_equal_complex_FMatrix(&tmp2, cexp(-I*((double)coord[0])*p));
      plus_equal_FMatrix(&Qmp, &tmp2);
      }
 
@@ -246,6 +246,7 @@ void compute_flavour_observables(Conf const * const GC,
   }
 
 
+/* // first try
 // compute gauge dependent correlators
 //
 // tildeG1_p1=Re[(\sum_x A_{x,0}e^{ip_1x})(\sum_y A_{y,0}e^{-ip_1y)]/volume
@@ -324,6 +325,79 @@ void compute_gauge_correlators(Conf const * const GC,
   *tildeG2_p2=creal(forG2_p2*conj(forG2_p2))*param->d_inv_vol;
 
   *tildeG3_p0=forG3_p0*forG3_p0*param->d_inv_vol;
+  *tildeG3_pmin=creal(forG3_pmin*conj(forG3_pmin))*param->d_inv_vol;
+
+  *disc_p0=forG3_p0*param->d_inv_vol;
+  *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
+  }
+*/
+
+
+// compute gauge dependent correlators
+//
+// tildeG1_pmin=Re[(\sum_x A_{x,0}e^{i*pmin*x})(\sum_y A_{y,0}e^{-i*pmin*y)]/volume
+// with pmin=(2pi/L_0, 0, 0,...)
+// tildeG1_p0 is the same but with p=0
+//
+// tildeG2_pmin=Re[(\sum_x A_{x,1}e^{i*pmin*x})(\sum_y A_{y,1}e^{-i*pmin*y)]/volume
+// with pmin=(2pi/L_0, 0, 0,...)
+// tildeG2_p0 is the same but with p=0
+//
+// B_x=sum_{mu} A_{x,mu}^2
+// tildeG3_p0=Re[(\sum_x B_x)(\sum_y B_y)]/volume
+// tildeG3_pmin=Re[(\sum_x B_xe^{i*pmin*x})(\sum_y B_ye^{-i*pmin*y)]/volume
+// disc_p0=[\sum_x B_x]/volume
+// disc_pmin=Re[\sum_x B_x e^{i*pmin*x}]/volume
+//
+void compute_gauge_correlators(Conf const * const GC,
+                               GParam const * const param,
+                               double *tildeG1_p0,
+                               double *tildeG1_pmin,
+                               double *tildeG2_p0,
+                               double *tildeG2_pmin,
+                               double *tildeG3_p0,
+                               double *tildeG3_pmin,
+                               double *disc_p0,
+                               double *disc_pmin)
+  {
+  int i, coord[STDIM];
+  long r;
+  double forG1_p0, forG2_p0, forG3_p0, B;
+  double complex forG1_pmin, forG2_pmin, forG3_pmin;
+  const double p = 2.0*PI/(double)param->d_size[0];
+
+  forG1_p0=0.0;
+  forG2_p0=0.0;
+  forG3_p0=0.0;
+  forG1_pmin=0.0+I*0.0;
+  forG2_pmin=0.0+I*0.0;
+  forG3_pmin=0.0+I*0.0;
+
+  for(r=0; r<(param->d_volume); r++)
+     {
+     si_to_cart(coord, r, param);
+
+     forG1_p0+=GC->theta[r][0];
+     forG2_p0+=GC->theta[r][1];
+
+     forG1_pmin+=GC->theta[r][0] * cexp(-I*((double)coord[0])*p);
+     forG2_pmin+=GC->theta[r][1] * cexp(-I*((double)coord[0])*p);
+
+     B=0;
+     for(i=0; i<STDIM; i++)
+        {
+        B+=(GC->theta[r][i])*(GC->theta[r][i]);
+        }
+     forG3_p0+=B;
+     forG3_pmin+=B * cexp(-I*((double)coord[0])*p);
+     }
+
+  *tildeG1_p0=forG1_p0*forG1_p0*param->d_inv_vol;
+  *tildeG2_p0=forG2_p0*forG2_p0*param->d_inv_vol;
+  *tildeG3_p0=forG3_p0*forG3_p0*param->d_inv_vol;
+
+  *tildeG1_pmin=creal(forG1_pmin*conj(forG1_pmin))*param->d_inv_vol;
+  *tildeG2_pmin=creal(forG2_pmin*conj(forG2_pmin))*param->d_inv_vol;
   *tildeG3_pmin=creal(forG3_pmin*conj(forG3_pmin))*param->d_inv_vol;
 
   *disc_p0=forG3_p0*param->d_inv_vol;
