@@ -246,7 +246,7 @@ void compute_flavour_observables(Conf const * const GC,
   }
 
 
-/* // first try
+// for C*
 // compute gauge dependent correlators
 //
 // tildeG1_p1=Re[(\sum_x A_{x,0}e^{ip_1x})(\sum_y A_{y,0}e^{-ip_1y)]/volume
@@ -330,9 +330,9 @@ void compute_gauge_correlators(Conf const * const GC,
   *disc_p0=forG3_p0*param->d_inv_vol;
   *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
   }
-*/
 
 
+/* // PBC-like
 // compute gauge dependent correlators
 //
 // tildeG1_pmin=Re[(\sum_x A_{x,0}e^{i*pmin*x})(\sum_y A_{y,0}e^{-i*pmin*y)]/volume
@@ -403,7 +403,7 @@ void compute_gauge_correlators(Conf const * const GC,
   *disc_p0=forG3_p0*param->d_inv_vol;
   *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
   }
-
+*/
 
 void perform_measures(Conf *GC,
                       GParam const * const param,
