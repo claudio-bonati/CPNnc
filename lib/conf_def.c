@@ -70,7 +70,7 @@ void init_conf(Conf *GC,
 
        for(j=0; j<STDIM; j++)
           {
-          GC->theta[r][j]=1.0+0.05*(2.0*casuale()-1.0);
+          GC->theta[r][j]=0.0+0.05*(2.0*casuale()-1.0);
           }
        }
     }
