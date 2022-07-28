@@ -399,6 +399,10 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
      fprintf(fp, "SOFT_LORENZ GAUGE\n");
     #endif
 
+    #ifdef HARD_LORENZ_GAUGE
+     fprintf(fp, "HARD_LORENZ GAUGE\n");
+    #endif
+
     fprintf(fp,"\n");
 
     fprintf(fp, "number of flavours: %d\n", NFLAVOUR);

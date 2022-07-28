@@ -220,7 +220,7 @@ double plaqstaples_for_link(Conf *GC,
 
 
 // staples for the lorenz gauge term of the action
-// sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap
+// sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2*theta^2 + 2*theta*lorenzstap + indip(theta)
 // \partial_i f(x)=f(x+i)-f(x)
 double lorenzstaples_for_link(Conf *GC,
                               Geometry const * const geo,
@@ -327,7 +327,7 @@ int metropolis_for_link(Conf *GC,
   // we used sum (plaq)^2 = 2*(STDIM-1)*theta^2 + 2*theta*plaqstaple + independent of theta
   old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
   #ifdef SOFT_LORENZ_GAUGE
-    // sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap
+    // sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap + indip. theta
     old_energy+= param->d_gaugefixpar * old_theta*old_theta + param->d_gaugefixpar*old_theta*lstaple;
   #endif
   #ifdef SOFT_TEMPORAL_GAUGE
@@ -385,7 +385,7 @@ int metropolis_for_link(Conf *GC,
     //printf("%g %g\n", old_energy-new_energy, old_energy-new_energy -(old_energy_aux-new_energy_aux));
     if(fabs(old_energy-new_energy -(old_energy_aux-new_energy_aux))>1.0e-10 )
       {
-      fprintf(stderr, "Problem in energy in metropolis for link (%s, %d)\n", __FILE__, __LINE__);
+      fprintf(stderr, "Problem in energy in metropolis for link %g (%s, %d)\n", fabs(old_energy-new_energy -(old_energy_aux-new_energy_aux)), __FILE__, __LINE__);
       exit(EXIT_FAILURE);
       }
   #endif

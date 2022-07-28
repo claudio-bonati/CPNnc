@@ -117,6 +117,58 @@ void init_conf(Conf *GC,
   }
 
 
+void init_conf_from_conf(Conf *GCnew,
+                         Conf const * const GCold,
+                         GParam const * const param)
+  {
+  long r, j;
+  int err;
+
+  // allocate the lattice
+  err=posix_memalign((void**) &(GCnew->theta), (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double *));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in allocating the lattice! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+  for(r=0; r<(param->d_volume); r++)
+     {
+     err=posix_memalign((void**)&(GCnew->theta[r]), (size_t) DOUBLE_ALIGN, (size_t )STDIM * sizeof(double));
+     if(err!=0)
+       {
+       fprintf(stderr, "Problems in allocating the lattice! (%s, %d)\n", __FILE__, __LINE__);
+       exit(EXIT_FAILURE);
+       }
+     }
+
+  err=posix_memalign((void**) &(GCnew->phi), (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(Vec));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in allocating the lattice! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  err=posix_memalign((void**) &(GCnew->Qh), (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(FMatrix));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in allocating the lattice! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  // initialize lattice
+  GCnew->update_index=GCold->update_index;
+
+  for(r=0; r<(param->d_volume); r++)
+     {
+     equal_Vec(&(GCnew->phi[r]), &(GCold->phi[r]));
+
+     for(j=0; j<STDIM; j++)
+        {
+        GCnew->theta[r][j]=GCold->theta[r][j];
+        }
+     }
+  }
+
 
 void read_conf(Conf *GC, GParam const * const param)
   {

@@ -7,6 +7,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 
+#include"../include/conf.h"
 #include"../include/flavour_matrix.h"
 #include"../include/gparam.h"
 #include"../include/geometry.h"
@@ -162,6 +163,29 @@ double higgs_interaction(Conf const * const GC,
   return ris;
   }
 
+// compute \sum_{mu}\partial_{\mu} theta_{\mu}
+double local_gauge_div(Conf const * const GC,
+                       Geometry const * const geo,
+                       long int r)
+   {
+   int i;
+   double ris;
+
+   ris=0.0;
+   for(i=0; i<STDIM; i++)
+      {
+      #ifdef CSTAR_BC
+        ris += bcsitep(geo, r, i)*(GC->theta[nnp(geo, r, i)][i]);
+        ris -= GC->theta[r][i];
+      #else
+        ris += GC->theta[nnp(geo, r, i)][i];
+        ris -= GC->theta[r][i];
+      #endif
+      }
+
+   return ris;
+   }
+
 
 // compute the violation of the Lorentz condition: \sum_{x} (\sum_{mu}\partial_{\mu} theta_{\mu})^2
 double lorenz_gauge_violation(Conf const * const GC,
@@ -169,23 +193,12 @@ double lorenz_gauge_violation(Conf const * const GC,
                               GParam const * const param)
    {
    long r;
-   int i;
    double ris, tmp;
 
    ris=0.0;
    for(r=0; r<param->d_volume; r++)
       {
-      tmp=0.0;
-      for(i=0; i<STDIM; i++)
-         {
-         #ifdef CSTAR_BC
-           tmp += bcsitep(geo, r, i)*(GC->theta[nnp(geo, r, i)][i]);
-           tmp -= GC->theta[r][i];
-         #else
-           tmp += GC->theta[nnp(geo, r, i)][i];
-           tmp -= GC->theta[r][i];
-         #endif
-         }
+      tmp=local_gauge_div(GC, geo, r);
       ris+=tmp*tmp;
       }
 
@@ -332,78 +345,112 @@ void compute_gauge_correlators(Conf const * const GC,
   }
 
 
-/* // PBC-like
-// compute gauge dependent correlators
-//
-// tildeG1_pmin=Re[(\sum_x A_{x,0}e^{i*pmin*x})(\sum_y A_{y,0}e^{-i*pmin*y)]/volume
-// with pmin=(2pi/L_0, 0, 0,...)
-// tildeG1_p0 is the same but with p=0
-//
-// tildeG2_pmin=Re[(\sum_x A_{x,1}e^{i*pmin*x})(\sum_y A_{y,1}e^{-i*pmin*y)]/volume
-// with pmin=(2pi/L_0, 0, 0,...)
-// tildeG2_p0 is the same but with p=0
-//
-// B_x=sum_{mu} A_{x,mu}^2
-// tildeG3_p0=Re[(\sum_x B_x)(\sum_y B_y)]/volume
-// tildeG3_pmin=Re[(\sum_x B_xe^{i*pmin*x})(\sum_y B_ye^{-i*pmin*y)]/volume
-// disc_p0=[\sum_x B_x]/volume
-// disc_pmin=Re[\sum_x B_x e^{i*pmin*x}]/volume
-//
-void compute_gauge_correlators(Conf const * const GC,
-                               GParam const * const param,
-                               double *tildeG1_p0,
-                               double *tildeG1_pmin,
-                               double *tildeG2_p0,
-                               double *tildeG2_pmin,
-                               double *tildeG3_p0,
-                               double *tildeG3_pmin,
-                               double *disc_p0,
-                               double *disc_pmin)
+// this function locally minimize the value of the lorenz gauge functional
+void local_fix_lorenz_gauge(Conf *GC,
+                            Geometry const * const geo,
+                            GParam const * const param,
+                            long int r)
   {
-  int i, coord[STDIM];
-  long r;
-  double forG1_p0, forG2_p0, forG3_p0, B;
-  double complex forG1_pmin, forG2_pmin, forG3_pmin;
-  const double p = 2.0*PI/(double)param->d_size[0];
+  #ifdef DEBUG
+    double test1, test2, test1new, test2new;
 
-  forG1_p0=0.0;
-  forG2_p0=0.0;
-  forG3_p0=0.0;
-  forG1_pmin=0.0+I*0.0;
-  forG2_pmin=0.0+I*0.0;
-  forG3_pmin=0.0+I*0.0;
+    test1=plaquettesq(GC, geo, param);
+    test2=lorenz_gauge_violation(GC, geo, param);
+  #else
+    (void) param;
+  #endif
 
-  for(r=0; r<(param->d_volume); r++)
-     {
-     si_to_cart(coord, r, param);
+  int j;
+  double alpha;
 
-     forG1_p0+=GC->theta[r][0];
-     forG2_p0+=GC->theta[r][1];
+  #ifdef CSTAR_BC
+    alpha=((double)STDIM)*local_gauge_div(GC, geo, r);
+    for(j=0; j<STDIM; j++)
+       {
+       alpha-=bcsitem(geo, r, j)*2.0*local_gauge_div(GC, geo, nnm(geo, r, j));
+       }
+    for(j=0; j<STDIM; j++)
+       {
+       alpha+=bcsitem(geo, r, j)*bcsitem(geo, nnm(geo, r, j), j)*local_gauge_div(GC, geo, nnm(geo, nnm(geo, r, j), j));
+       }
+    alpha/=((double)STDIM);
+    alpha/=((double)STDIM+5.0);
 
-     forG1_pmin+=GC->theta[r][0] * cexp(-I*((double)coord[0])*p);
-     forG2_pmin+=GC->theta[r][1] * cexp(-I*((double)coord[0])*p);
+    for(j=0; j<STDIM; j++)
+       {
+       GC->theta[r][j]+=alpha;
+       GC->theta[nnm(geo, r, j)][j]-=alpha*bcsitem(geo, r, j);
+       }
+  #else
+    alpha=((double)STDIM)*local_gauge_div(GC, geo, r);
+    for(j=0; j<STDIM; j++)
+       {
+       alpha-=2.0*local_gauge_div(GC, geo, nnm(geo, r, j));
+       }
+    for(j=0; j<STDIM; j++)
+       {
+       alpha+=local_gauge_div(GC, geo, nnm(geo, nnm(geo, r, j), j));
+       }
+    alpha/=((double)STDIM);
+    alpha/=((double)STDIM+5.0);
 
-     B=0;
-     for(i=0; i<STDIM; i++)
-        {
-        B+=(GC->theta[r][i])*(GC->theta[r][i]);
-        }
-     forG3_p0+=B;
-     forG3_pmin+=B * cexp(-I*((double)coord[0])*p);
-     }
+    for(j=0; j<STDIM; j++)
+       {
+       GC->theta[r][j]+=alpha;
+       GC->theta[nnm(geo, r, j)][j]-=alpha;
+       }
+  #endif
 
-  *tildeG1_p0=forG1_p0*forG1_p0*param->d_inv_vol;
-  *tildeG2_p0=forG2_p0*forG2_p0*param->d_inv_vol;
-  *tildeG3_p0=forG3_p0*forG3_p0*param->d_inv_vol;
 
-  *tildeG1_pmin=creal(forG1_pmin*conj(forG1_pmin))*param->d_inv_vol;
-  *tildeG2_pmin=creal(forG2_pmin*conj(forG2_pmin))*param->d_inv_vol;
-  *tildeG3_pmin=creal(forG3_pmin*conj(forG3_pmin))*param->d_inv_vol;
+  #ifdef DEBUG
+  test1new=plaquettesq(GC, geo, param);
+  test2new=lorenz_gauge_violation(GC, geo, param);
 
-  *disc_p0=forG3_p0*param->d_inv_vol;
-  *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
+  if(fabs(test1-test1new)>MIN_VALUE)
+    {
+    fprintf(stderr, "Problem in plaquettes in local_fix_lorenz_gauge (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  if(test2new>test2+MIN_VALUE)
+    {
+    fprintf(stderr, "Problem in minimization in local_fix_lorenz_gauge (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+  //printf("\t %g\n", test2new-test2);
+  #endif
   }
-*/
+
+
+void fix_lorenz_gauge(Conf *GC,
+                      GParam const * const param,
+                      Geometry const * const geo)
+  {
+  double test;
+  long int r;
+  const double soglia=MIN_VALUE*sqrt((double)param->d_volume);
+
+  test=lorenz_gauge_violation(GC, geo, param);
+
+  long int i=0;
+  while(test>soglia)
+       {
+       for(r=0; r<param->d_volume; r++)
+          {
+          local_fix_lorenz_gauge(GC, geo, param, r);
+          }
+
+       test=lorenz_gauge_violation(GC, geo, param);
+       if(i%10000==0)
+         {
+         printf("%ld %g\n", i, test/soglia);
+         }
+       i++;
+       }
+  printf("%ld %g\n", i, test/soglia);
+  fflush(stdout);
+  }
+
 
 void perform_measures(Conf *GC,
                       GParam const * const param,
@@ -432,17 +479,39 @@ void perform_measures(Conf *GC,
 
    fprintf(datafilep, "%.12g %.12g %.12g %.12g ", tildeG0, tildeGminp, scalar_coupling, plaqsq);
 
-   // gauge dependent measures
-   compute_gauge_correlators(GC,
-                             param,
-                             &meas[0],
-                             &meas[1],
-                             &meas[2],
-                             &meas[3],
-                             &meas[4],
-                             &meas[5],
-                             &meas[6],
-                             &meas[7]);
+   #ifdef HARD_LORENZ_GAUGE  // fix lorenz gauge in measures
+     Conf GCbis;
+
+     init_conf_from_conf(&GCbis, GC, param);
+     fix_lorenz_gauge(&GCbis, param, geo);
+
+     // gauge dependent measures
+     compute_gauge_correlators(&GCbis,
+                               param,
+                               &meas[0],
+                               &meas[1],
+                               &meas[2],
+                               &meas[3],
+                               &meas[4],
+                               &meas[5],
+                               &meas[6],
+                               &meas[7]);
+
+     free_conf(&GCbis, param);
+   #else
+     // gauge dependent measures
+     compute_gauge_correlators(GC,
+                               param,
+                               &meas[0],
+                               &meas[1],
+                               &meas[2],
+                               &meas[3],
+                               &meas[4],
+                               &meas[5],
+                               &meas[6],
+                               &meas[7]);
+   #endif
+
    for(i=0; i<8; i++)
       {
       fprintf(datafilep, "%.12g ", meas[i]);

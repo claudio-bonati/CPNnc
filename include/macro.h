@@ -12,6 +12,11 @@
   #define GAUGE_FIX
 #endif
 
+//#define HARD_LORENZ_GAUGE  // fix lorenz gauge in measures
+#ifdef HARD_LORENZ_GAUGE
+  #define GAUGE_FIX
+#endif
+
 //#define SOFT_LORENZ_GAUGE // add (alpha/2)(\sum_{mu} \partial_{mu} theta_{mu})^2 to the energy
 #ifdef SOFT_LORENZ_GAUGE
   #define GAUGE_FIX
@@ -34,12 +39,20 @@
     #error "HARD_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
   #endif
 
+  #ifdef HARD_LORENZ_GAUGE
+    #error "HARD_TEMPORAL_GAUGE and HARD_LORENZ_GAUGE can not be used togheter"
+  #endif
+
   #ifdef SOFT_TEMPORAL_GAUGE
     #error "HARD_TEMPORAL_GAUGE and SOFT_TEMPORAL_GAUGE can not be used togheter"
   #endif
 #endif
 
 #ifdef SOFT_LORENZ_GAUGE
+  #ifdef HARD_LORENZ_GAUGE
+    #error "SOFT_LORENZ_GAUGE and HARD_LORENZ_GAUGE can not be used togheter"
+  #endif
+
   #ifdef HARD_TEMPORAL_GAUGE
     #error "HARD_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
   #endif
@@ -57,6 +70,11 @@
   #ifdef SOFT_LORENZ_GAUGE
     #error "SOFT_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
   #endif
+
+  #ifdef HARD_LORENZ_GAUGE
+    #error "HARD_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
+  #endif
+
 #endif
 
 // function to access matrix elements

@@ -213,6 +213,10 @@ int main (int argc, char **argv)
          printf("\n\tSOFT_LORENZ GAUGE\n");
       #endif
 
+      #ifdef HARD_LORENZ_GAUGE
+         printf("\n\tHARD_LORENZ GAUGE\n");
+      #endif
+
       printf("\n");
 
       #ifdef __INTEL_COMPILER

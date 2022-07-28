@@ -26,6 +26,9 @@ typedef struct Conf {
 // in conf_def.c
 void init_conf(Conf *GC,
                GParam const * const param);
+void init_conf_from_conf(Conf *GCnew,
+                         Conf const * const GCold,
+                         GParam const * const param);
 void read_conf(Conf *GC,
                GParam const * const param);
 void free_conf(Conf *GC,
@@ -90,6 +93,9 @@ double plaquettesq(Conf const * const GC,
 double higgs_interaction(Conf const * const GC,
                          Geometry const * const geo,
                          GParam const * const param);
+double local_gauge_div(Conf const * const GC,
+                       Geometry const * const geo,
+                       long int r);
 double lorenz_gauge_violation(Conf const * const GC,
                               Geometry const * const geo,
                               GParam const * const param);
@@ -107,6 +113,13 @@ void compute_gauge_correlators(Conf const * const GC,
                                double *tildeG3_pmin,
                                double *disc_p0,
                                double *disc_pmin);
+void local_fix_lorenz_gauge(Conf *GC,
+                            Geometry const * const geo,
+                            GParam const * const param,
+                            long int r);
+void fix_lorenz_gauge(Conf *GC,
+                      GParam const * const param,
+                      Geometry const * const geo);
 void perform_measures(Conf *GC,
                       GParam const * const param,
                       Geometry const * const geo,
