@@ -469,7 +469,7 @@ void update(Conf * GC,
 
 
    // this prevents theta to overflow if d_K=0 (no kinetic term for theta) and d_phmass=0
-   #if !defined(SOFT_LORENZ_GAUGE) && !defined(HARD_LORENZ_GAUGE)
+   #if ( !defined(SOFT_LORENZ_GAUGE) && !defined(HARD_LORENZ_GAUGE) )
      #if !defined(SOFT_TEMPORAL_GAUGE)               // for HARD_TEMPORAL_GAUGE or no gauge fixing at all
        if(fabs(param->d_K)<MIN_VALUE && fabs(param->d_phmass) < MIN_VALUE)
          {
