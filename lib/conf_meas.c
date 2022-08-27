@@ -422,9 +422,10 @@ void local_fix_lorenz_gauge(Conf *GC,
   }
 
 
-void fix_lorenz_gauge(Conf *GC,
-                      GParam const * const param,
-                      Geometry const * const geo)
+// fix lorenz gauge using local minimization
+void fix_lorenz_gauge_locmin(Conf *GC,
+                              GParam const * const param,
+                              Geometry const * const geo)
   {
   double test;
   long int r;
@@ -441,17 +442,379 @@ void fix_lorenz_gauge(Conf *GC,
           }
 
        test=lorenz_gauge_violation(GC, geo, param);
-       if(i%10000==0)
-         {
-         printf("%ld %g\n", i, test/soglia);
-         }
+       #ifdef DEBUG
+         if(i%1000==0)
+           {
+           printf("%ld %g\n", i, test/soglia);
+           }
+       #endif
        i++;
        }
-  printf("%ld %g\n", i, test/soglia);
-  fflush(stdout);
+  #ifdef DEBUG
+    printf("%ld %g\n", i, test/soglia);
+    fflush(stdout);
+  #endif
   }
 
 
+// out=A*in, where ''A'' is the matrix needed to fix the Lorenz gauge
+void matrix_apply(double *out,
+                  double const * const in,
+                  GParam const * const param,
+                  Geometry const * const geo)
+  {
+  int i, j;
+  long r, r1, r2, r3;
+  double tmp;
+
+  for(r=0; r<param->d_volume; r++)
+     {
+     out[r]=STDIM*STDIM*in[r];
+
+     tmp=0.0;
+     for(i=0; i<STDIM; i++)
+        {
+        #ifdef CSTAR_BC
+          tmp+=bcsitep(geo, r, i)*in[nnp(geo, r, i)];
+        #else
+          tmp+=in[nnp(geo, r, i)];
+        #endif
+        }
+     out[r]-=2.0*STDIM*tmp;
+
+     tmp=0.0;
+     for(i=0; i<STDIM; i++)
+        {
+        #ifdef CSTAR_BC
+          tmp+=bcsitem(geo, r, i)*in[nnm(geo, r, i)];
+        #else
+          tmp+=in[nnm(geo, r, i)];
+        #endif
+        }
+     out[r]-=2.0*STDIM*tmp;
+
+     tmp=0.0;
+     for(i=0; i<STDIM; i++)
+        {
+        r1=nnp(geo, r, i);
+        #ifdef CSTAR_BC
+           tmp+=bcsitep(geo, r, i)*bcsitep(geo, r1, i)*in[nnp(geo, r1, i)];
+        #else
+          tmp+=in[nnp(geo, r1, i)];
+        #endif
+        }
+     out[r]+=STDIM*tmp;
+
+     tmp=0.0;
+     for(i=0; i<STDIM; i++)
+        {
+        r1=nnm(geo, r, i);
+        #ifdef CSTAR_BC
+          tmp+=bcsitem(geo, r, i)*bcsitem(geo, r1, i)*in[nnm(geo, r1, i)];
+        #else
+          tmp+=in[nnm(geo, r1, i)];
+        #endif
+        }
+     out[r]+=STDIM*tmp;
+
+     tmp=0.0;
+     for(i=0; i<STDIM; i++)
+        {
+        r1=nnp(geo, r, i);
+        for(j=0; j<STDIM; j++)
+           {
+           #ifdef CSTAR_BC
+             tmp+=bcsitep(geo, r, i)*bcsitem(geo, r1, j)*in[nnm(geo, r1, j)];
+           #else
+             tmp+=in[nnm(geo, r1, j)];
+           #endif
+           }
+        }
+     out[r]+=4*tmp;
+
+     tmp=0.0;
+     for(i=0; i<STDIM; i++)
+        {
+        r1=nnp(geo, r, i);
+        r2=nnp(geo, r1, i);
+        for(j=0; j<STDIM; j++)
+           {
+           #ifdef CSTAR_BC
+             tmp+=bcsitep(geo, r, i)*bcsitep(geo, r1, i)*bcsitem(geo, r2, j)*in[nnm(geo, r2, j)];
+           #else
+             tmp+=in[nnm(geo, r2, j)];
+           #endif
+           }
+        }
+     out[r]-=2*tmp;
+
+     tmp=0.0;
+     for(j=0; j<STDIM; j++)
+        {
+        r1=nnm(geo, r, j);
+        r2=nnm(geo, r1, j);
+        for(i=0; i<STDIM; i++)
+           {
+           #ifdef CSTAR_BC
+             tmp+=bcsitem(geo, r, j)*bcsitem(geo, r1, j)*bcsitep(geo, r2, i)*in[nnp(geo, r2, i)];
+           #else
+             tmp+=in[nnp(geo, r2, i)];
+           #endif
+           }
+        }
+     out[r]-=2*tmp;
+
+     tmp=0.0;
+     for(j=0; j<STDIM; j++)
+        {
+        r1=nnm(geo, r, j);
+        r2=nnm(geo, r1, j);
+        for(i=0; i<STDIM; i++)
+           {
+           r3=nnp(geo, r2, i);
+           #ifdef CSTAR_BC
+             tmp+=bcsitem(geo, r, j)*bcsitem(geo, r1, j)*bcsitep(geo, r2, i)*bcsitep(geo, r3, i)*in[nnp(geo, r3, i)];
+           #else
+             tmp+=in[nnp(geo, r3, i)];
+           #endif
+           }
+        }
+     out[r]+=tmp;
+     }
+  }
+
+
+// solve Ax=b using conjugate gradient with ''A'' the matrix needed to fix the Lorenz gauge
+// *x has to be initialized before calling this function
+void CG_solver(double *x,
+               double const * const b,
+               GParam const * const param,
+               Geometry const * const geo,
+               double soglia)
+  {
+  int k, err;
+  long r;
+  double alphak, betak, *pk, *rk, *Apk, norm1, norm1new, norm2;
+  const int maxiteration=10000;
+
+  err=posix_memalign((void**)&pk, (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in CG_solver! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  err=posix_memalign((void**)&rk, (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in CG_solver! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  err=posix_memalign((void**)&Apk, (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in CG_solver! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  matrix_apply(pk, x, param, geo);  // pk = A*x
+  for(r=0; r<param->d_volume; r++)  // pk=rk=b-A*x
+     {
+     pk[r]=b[r]-pk[r];
+     rk[r]=pk[r];
+     }
+
+  norm1=0.0;     // norm_1=(r_k, r_k)
+  for(r=0; r<param->d_volume; r++)
+     {
+     norm1+=rk[r]*rk[r];
+     }
+
+  k=0; // iteration index
+  while(sqrt(norm1)>soglia && k<maxiteration)
+       {
+       matrix_apply(Apk, pk, param, geo);  // Apk = A*p_k
+
+       norm2=0.0;  // norm2=(p_k, A p_k)
+       for(r=0; r<param->d_volume; r++)
+          {
+          norm2+=pk[r]*Apk[r];
+          }
+
+       alphak=norm1/norm2; // alpha_k=(r_k,r_k)/(p_k, A*p_k)
+
+       for(r=0; r<param->d_volume; r++)
+          {
+          x[r]+=alphak*pk[r];    // x_k->x_{k+1}
+          rk[r]-=alphak*Apk[r];  // r_k->r_{k+1}
+          }
+
+       norm1new=0.0;  // norm1new = (r_{k+1}, r_{k+1})
+       for(r=0; r<param->d_volume; r++)
+          {
+          norm1new+=rk[r]*rk[r];
+          }
+
+       betak=norm1new/norm1;  // beta_k = (r_{k+1}, r_{k+1})/(r_k, r_k)
+       norm1=norm1new;        // norm1=(r_{k+1},r_{k+1})
+
+       for(r=0; r<param->d_volume; r++)
+          {
+          pk[r]=rk[r]+betak*pk[r];  // p_k->p_{k+1}
+          }
+
+       #ifdef DEBUG
+         printf("CG: iteration %d (max %d), normalized residual %g\n", k, maxiteration, sqrt(norm1)/soglia);
+       #endif
+
+       k+=1;
+       }
+
+  if(k>=maxiteration)
+    {
+    fprintf(stderr, "Max number of iterations reached in CG_solver! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  #ifdef DEBUG
+    matrix_apply(pk, x, param, geo);  // pk =A*x
+
+    for(r=0; r<param->d_volume; r++)  // rk = b-A*x
+       {
+       rk[r]=b[r]-pk[r];
+       }
+
+    norm1=0.0;
+    for(r=0; r<param->d_volume; r++)
+       {
+       norm1+=rk[r]*rk[r];
+       }
+    printf("CG final normalized residual %g\n\n", sqrt(norm1)/soglia);
+
+    if(norm1 >= 2*soglia)
+      {
+      fprintf(stderr, "CG solver final precision test FAILED! (%s, %d)\n", __FILE__, __LINE__);
+      exit(EXIT_FAILURE);
+      }
+  #endif
+
+  free(pk);
+  free(rk);
+  free(Apk);
+  }
+
+
+// fix lorentz gauge via conjugate gradient
+void fix_lorenz_gauge_conjgrad(Conf *GC,
+                               GParam const * const param,
+                               Geometry const * const geo)
+  {
+  int i, err;
+  long int r, r1;
+  double *aux, *b, *sol;
+  const double soglia=MIN_VALUE*sqrt((double)param->d_volume);
+
+  #ifdef DEBUG
+    double test1, test2, test1new;
+
+    test1=plaquettesq(GC, geo, param);
+  #endif
+
+  err=posix_memalign((void**)&aux, (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in lorenz_gauge_conjgrad! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  err=posix_memalign((void**)&b, (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in lorenz_gauge_conjgrad! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  err=posix_memalign((void**)&sol, (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
+  if(err!=0)
+    {
+    fprintf(stderr, "Problems in lorenz_gauge_conjgrad! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+
+  // aux is the vector of the divergences
+  for(r=0; r<param->d_volume; r++)
+     {
+     aux[r]=local_gauge_div(GC, geo, r);
+     }
+
+  // b is the r.h.s. of the linear equation to be solved
+  for(r=0; r<param->d_volume; r++)
+     {
+     b[r]=STDIM*aux[r];
+     for(i=0; i<STDIM; i++)
+        {
+        #ifdef CSTAR_BC
+          r1=nnm(geo,r,i);
+          b[r]-=2*aux[r1]*bcsitem(geo, r, i);
+          b[r]+=aux[nnm(geo, r1, i)]*bcsitem(geo, r, i)*bcsitem(geo,r1, i);
+        #else
+          r1=nnm(geo,r,i);
+          b[r]-=2*aux[r1];
+          b[r]+=aux[nnm(geo, r1, i)];
+        #endif
+        }
+     }
+
+  // free the auxilliary vector
+  free(aux);
+
+  // initialize to zero vector
+  for(r=0; r<param->d_volume; r++)
+     {
+     sol[r]=0.0;
+     }
+
+  // find the gauge transformation
+  CG_solver(sol, b, param, geo, sqrt(soglia));
+
+  // apply the gauge transformation
+  for(r=0; r<param->d_volume; r++)
+     {
+     for(i=0; i<STDIM; i++)
+        {
+        #ifdef CSTAR_BC
+          GC->theta[r][i]+=sol[r];
+          GC->theta[r][i]-=bcsitep(geo, r, i)*sol[nnp(geo, r, i)];
+        #else
+          GC->theta[r][i]+=sol[r];
+          GC->theta[r][i]-=sol[nnp(geo, r, i)];
+        #endif
+        }
+     }
+
+  #ifdef DEBUG
+    test1new=plaquettesq(GC, geo, param);
+    test2=lorenz_gauge_violation(GC, geo, param);
+
+    if(fabs(test1-test1new)>MIN_VALUE)
+      {
+      fprintf(stderr, "Problems in fix_lorenz_gauge_conjgrad! (%s, %d)\n", __FILE__, __LINE__);
+      exit(EXIT_FAILURE);
+      }
+
+    printf("Normalized Lorenz gauge violation after Lorenz gauge fixing: %g\n\n", test2/soglia);
+  #endif
+
+    double test2=lorenz_gauge_violation(GC, geo, param);
+    printf("Normalized Lorenz gauge violation after Lorenz gauge fixing: %g\n\n", test2/soglia);
+
+  free(b);
+  free(sol);
+  }
+
+
+// perform the measures
 void perform_measures(Conf *GC,
                       GParam const * const param,
                       Geometry const * const geo,
@@ -483,7 +846,9 @@ void perform_measures(Conf *GC,
      Conf GCbis;
 
      init_conf_from_conf(&GCbis, GC, param);
-     fix_lorenz_gauge(&GCbis, param, geo);
+     //fix_lorenz_gauge_locmin(&GCbis, param, geo);
+     fix_lorenz_gauge_conjgrad(GC, param, geo);
+
 
      // gauge dependent measures
      compute_gauge_correlators(&GCbis,

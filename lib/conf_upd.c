@@ -469,25 +469,44 @@ void update(Conf * GC,
 
 
    // this prevents theta to overflow if d_K=0 (no kinetic term for theta) and d_phmass=0
-   // and no lorentz gauge (it is needed with temporal gauge)
-   #ifndef GAUGE_FIX
-     if(fabs(param->d_K)<MIN_VALUE && fabs(param->d_phmass) < MIN_VALUE)
-       {
-       for(r=0; r<param->d_volume; r++)
-          {
-          for(dir=0; dir<STDIM; dir++)
-             {
-             while(GC->theta[r][dir]>PI2)
-                  {
-                  GC->theta[r][dir]-=PI2;
-                  }
-             while(GC->theta[r][dir]<-PI2)
-                  {
-                  GC->theta[r][dir]+=PI2;
-                  }
-             }
-          }
-       }
+   #if !defined(SOFT_LORENZ_GAUGE) && !defined(HARD_LORENZ_GAUGE)
+     #if !defined(SOFT_TEMPORAL_GAUGE)               // for HARD_TEMPORAL_GAUGE or no gauge fixing at all
+       if(fabs(param->d_K)<MIN_VALUE && fabs(param->d_phmass) < MIN_VALUE)
+         {
+         for(r=0; r<param->d_volume; r++)
+            {
+            for(dir=0; dir<STDIM; dir++)
+               {
+               while(GC->theta[r][dir]>PI2)
+                    {
+                    GC->theta[r][dir]-=PI2;
+                    }
+               while(GC->theta[r][dir]<-PI2)
+                    {
+                    GC->theta[r][dir]+=PI2;
+                    }
+               }
+            }
+         }
+     #else // if SOFT_TEMPORAL_GAUGE
+       if(fabs(param->d_K)<MIN_VALUE && fabs(param->d_phmass) < MIN_VALUE)
+         {
+         for(r=0; r<param->d_volume; r++)
+            {
+            for(dir=1; dir<STDIM; dir++)
+               {
+               while(GC->theta[r][dir]>PI2)
+                    {
+                    GC->theta[r][dir]-=PI2;
+                    }
+               while(GC->theta[r][dir]<-PI2)
+                    {
+                    GC->theta[r][dir]+=PI2;
+                    }
+               }
+            }
+         }
+     #endif
    #endif
 
    GC->update_index++;

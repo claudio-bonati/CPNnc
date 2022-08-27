@@ -418,7 +418,10 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
     fprintf(fp, "J: %.10lf\n", param->d_J);
     fprintf(fp, "K: %.10lf\n", param->d_K);
     fprintf(fp, "phmass: %.10lf\n", param->d_phmass);
-    #ifdef GAUGE_FIX
+    #ifdef SOFT_AXIAL_GAUGE
+      fprintf(fp, "gaugefixpar: %.10lf\n", param->d_gaugefixpar);
+    #endif
+    #ifdef SOFT_LORENZ_GAUGE
       fprintf(fp, "gaugefixpar: %.10lf\n", param->d_gaugefixpar);
     #endif
 

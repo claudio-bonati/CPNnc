@@ -117,9 +117,21 @@ void local_fix_lorenz_gauge(Conf *GC,
                             Geometry const * const geo,
                             GParam const * const param,
                             long int r);
-void fix_lorenz_gauge(Conf *GC,
-                      GParam const * const param,
-                      Geometry const * const geo);
+void fix_lorenz_gauge_locmin(Conf *GC,
+                             GParam const * const param,
+                             Geometry const * const geo);
+void matrix_apply(double *out,
+                  double const * const in,
+                  GParam const * const param,
+                  Geometry const * const geo);
+void CG_solver(double *x,
+               double const * const b,
+               GParam const * const param,
+               Geometry const * const geo,
+               double soglia);
+void fix_lorenz_gauge_conjgrad(Conf *GC,
+                               GParam const * const param,
+                               Geometry const * const geo);
 void perform_measures(Conf *GC,
                       GParam const * const param,
                       Geometry const * const geo,

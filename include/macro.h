@@ -8,28 +8,36 @@
 #define CSTAR_BC   //C* bounday conditions
 
 //#define HARD_TEMPORAL_GAUGE  // fix theta=0 on temporal links
-#ifdef HARD_TEMPORAL_GAUGE
-  #define GAUGE_FIX
-#endif
 
 //#define HARD_LORENZ_GAUGE  // fix lorenz gauge in measures
-#ifdef HARD_LORENZ_GAUGE
-  #define GAUGE_FIX
-#endif
 
 //#define SOFT_LORENZ_GAUGE // add (alpha/2)(\sum_{mu} \partial_{mu} theta_{mu})^2 to the energy
-#ifdef SOFT_LORENZ_GAUGE
-  #define GAUGE_FIX
-#endif
 
-//#define SOFT_TEMPORAL_GAUGE  // add (alpha/2) theta_{0}^2 to the energy
-#ifdef SOFT_TEMPORAL_GAUGE
-  #define GAUGE_FIX
-#endif
+#define SOFT_TEMPORAL_GAUGE  // add (alpha/2) theta_{0}^2 to the energy
 
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
 
+
+
 // CHECKS
+#ifdef LINKS_FIXED_TO_ONE  
+  #ifdef HARD_TEMPORAL_GAUGE  
+    #error "Gauge fixings can not be used with LINKS_FIXED_TO_ONE"
+  #endif
+
+  #ifdef HARD_LORENZ_GAUGE  
+    #error "Gauge fixings can not be used with LINKS_FIXED_TO_ONE"
+  #endif
+
+  #ifdef SOFT_TEMPORAL_GAUGE  
+    #error "Gauge fixings can not be used with LINKS_FIXED_TO_ONE"
+  #endif
+
+  #ifdef SOFT_LORENZ_GAUGE  
+    #error "Gauge fixings can not be used with LINKS_FIXED_TO_ONE"
+  #endif
+#endif
+
 #ifdef HARD_TEMPORAL_GAUGE
   #ifndef CSTAR_BC
     #error "HARD_TEMPORAL_GAUGE can be defined only with C* boundary conditions"
@@ -74,7 +82,6 @@
   #ifdef HARD_LORENZ_GAUGE
     #error "HARD_TEMPORAL_GAUGE and SOFT_LORENZ_GAUGE can not be used togheter"
   #endif
-
 #endif
 
 // function to access matrix elements
