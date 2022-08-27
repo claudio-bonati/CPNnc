@@ -714,6 +714,7 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
   long int r, r1;
   double *aux, *b, *sol;
   const double soglia=MIN_VALUE*sqrt((double)param->d_volume);
+  double sogliaCG, test;
 
   #ifdef DEBUG
     double test1, test2, test1new;
@@ -775,23 +776,30 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
      sol[r]=0.0;
      }
 
-  // find the gauge transformation
-  CG_solver(sol, b, param, geo, sqrt(soglia));
+  sogliaCG=soglia;
+  test=lorenz_gauge_violation(GC, geo, param);
+  while(test/soglia>1)
+       {
+       // find the gauge transformation
+       CG_solver(sol, b, param, geo, sqrt(sogliaCG));
 
-  // apply the gauge transformation
-  for(r=0; r<param->d_volume; r++)
-     {
-     for(i=0; i<STDIM; i++)
-        {
-        #ifdef CSTAR_BC
-          GC->theta[r][i]+=sol[r];
-          GC->theta[r][i]-=bcsitep(geo, r, i)*sol[nnp(geo, r, i)];
-        #else
-          GC->theta[r][i]+=sol[r];
-          GC->theta[r][i]-=sol[nnp(geo, r, i)];
-        #endif
-        }
-     }
+       // apply the gauge transformation
+       for(r=0; r<param->d_volume; r++)
+          {
+          for(i=0; i<STDIM; i++)
+             {
+             #ifdef CSTAR_BC
+               GC->theta[r][i]+=sol[r];
+               GC->theta[r][i]-=bcsitep(geo, r, i)*sol[nnp(geo, r, i)];
+             #else
+               GC->theta[r][i]+=sol[r];
+               GC->theta[r][i]-=sol[nnp(geo, r, i)];
+             #endif
+             }
+          }
+       test=lorenz_gauge_violation(GC, geo, param);
+       sogliaCG/=25.0;
+       }
 
   #ifdef DEBUG
     test1new=plaquettesq(GC, geo, param);
@@ -806,8 +814,6 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
     printf("Normalized Lorenz gauge violation after Lorenz gauge fixing: %g\n\n", test2/soglia);
   #endif
 
-    double test2=lorenz_gauge_violation(GC, geo, param);
-    printf("Normalized Lorenz gauge violation after Lorenz gauge fixing: %g\n\n", test2/soglia);
 
   free(b);
   free(sol);

@@ -13,7 +13,7 @@
 
 //#define SOFT_LORENZ_GAUGE // add (alpha/2)(\sum_{mu} \partial_{mu} theta_{mu})^2 to the energy
 
-#define SOFT_TEMPORAL_GAUGE  // add (alpha/2) theta_{0}^2 to the energy
+//#define SOFT_TEMPORAL_GAUGE  // add (alpha/2) theta_{0}^2 to the energy
 
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
 
