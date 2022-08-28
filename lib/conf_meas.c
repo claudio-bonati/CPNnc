@@ -853,7 +853,7 @@ void perform_measures(Conf *GC,
 
      init_conf_from_conf(&GCbis, GC, param);
      //fix_lorenz_gauge_locmin(&GCbis, param, geo);
-     fix_lorenz_gauge_conjgrad(GC, param, geo);
+     fix_lorenz_gauge_conjgrad(&GCbis, param, geo);
 
 
      // gauge dependent measures
