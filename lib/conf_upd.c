@@ -220,8 +220,7 @@ double plaqstaples_for_link(Conf *GC,
 
 
 // staples for the lorenz gauge term of the action
-// sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2*theta^2 + 2*theta*lorenzstap + indip(theta)
-// \partial_i f(x)=f(x+i)-f(x)
+// sum_x (\sum_j[\theta_{x,j}-theta_{x-j,j}])^2 = 2*theta_{r,i}^2 + 2*theta_{r,i}*lorenzstap + indip(theta_{r,i})
 double lorenzstaples_for_link(Conf *GC,
                               Geometry const * const geo,
                               long r,
@@ -235,39 +234,39 @@ double lorenzstaples_for_link(Conf *GC,
     int sign;
 
     ris=0.0;
-    // forward
+    // from r
     for(k=1; k<STDIM; k++)
        {
        j=(i+k)%STDIM;
-       ris-= bcsitep(geo, r, j)*GC->theta[nnp(geo,r,j)][j] - GC->theta[r][j];
+       ris+= GC->theta[r][j] - bcsitem(geo,r,j)*GC->theta[nnm(geo,r,j)][j];
        }
-    ris-= bcsitep(geo, r, i)*GC->theta[nnp(geo,r,i)][i];
+    ris-= bcsitem(geo, r, i)*GC->theta[nnm(geo,r,i)][i];
 
-    r1=nnm(geo,r,i);
-    sign=bcsitem(geo,r,i);
-    // backwar
+    r1=nnp(geo,r,i);
+    sign=bcsitep(geo,r,i);
+    // from r+i
     for(k=1; k<STDIM; k++)
        {
        j=(i+k)%STDIM;
-       ris+= sign*bcsitep(geo,r1,j)*GC->theta[nnp(geo,r1,j)][j] - sign*GC->theta[r1][j];
+       ris-= sign*GC->theta[r1][j] - sign*bcsitem(geo,r1,j)*GC->theta[nnm(geo,r1,j)][j];
        }
     ris-=sign*GC->theta[r1][i];
   #else
     ris=0.0;
-    // forward
+    // from r
     for(k=1; k<STDIM; k++)
        {
        j=(i+k)%STDIM;
-       ris-= GC->theta[nnp(geo,r,j)][j] - GC->theta[r][j];
+       ris+= GC->theta[r][j] - GC->theta[nnm(geo,r,j)][j];
        }
-    ris-=GC->theta[nnp(geo,r,i)][i];
+    ris-=GC->theta[nnm(geo,r,i)][i];
 
-    r1=nnm(geo,r,i);
-    // backwar
+    r1=nnp(geo,r,i);
+    // from r+i
     for(k=1; k<STDIM; k++)
        {
        j=(i+k)%STDIM;
-       ris+= GC->theta[nnp(geo,r1,j)][j] - GC->theta[r1][j];
+       ris-= GC->theta[r1][j] - GC->theta[nnm(geo,r1,j)][j];
        }
     ris-=GC->theta[r1][i];
   #endif
@@ -277,7 +276,7 @@ double lorenzstaples_for_link(Conf *GC,
 
 
 // perform an update with metropolis of the link variables
-// retrn 0 if the trial state is rejected and 1 otherwise
+// return 0 if the trial state is rejected and 1 otherwise
 int metropolis_for_link(Conf *GC,
                         Geometry const * const geo,
                         GParam const * const param,
@@ -327,7 +326,7 @@ int metropolis_for_link(Conf *GC,
   // we used sum (plaq)^2 = 2*(STDIM-1)*theta^2 + 2*theta*plaqstaple + independent of theta
   old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
   #ifdef SOFT_LORENZ_GAUGE
-    // sum_x (\sum_i \partial_i \theta_{x,i})^2 = 2 theta^2 + 2*theta*lorenzstap + indip. theta
+    // sum_x (sum_i[\theta_{x,i}-theta_{x-i,i}])^2 = 2 theta^2 + 2*theta*lorenzstap + indip. theta
     old_energy+= param->d_gaugefixpar * old_theta*old_theta + param->d_gaugefixpar*old_theta*lstaple;
   #endif
   #ifdef SOFT_TEMPORAL_GAUGE

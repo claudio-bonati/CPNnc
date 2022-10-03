@@ -31,10 +31,10 @@ HARD_TEMPORAL_GAUGE : gauge fix theta_{x,0}=0 (this can be done only with C^* b.
 
 SOFT_TEMPORAL_GAUGE :  add (gaugefixpar/2) theta_{x,0}^2 to the energy 
 
-HARD_LORENZ_GAUGE : gauge fix \sum_{mu} \partial_{mu} theta_{x,mu}=0 before performing the measure 
+HARD_LORENZ_GAUGE : gauge fix \sum_{mu} (theta_{x,mu}-theta_{x-mu,mu})=0 before performing the measure 
                     (but NOT during the update!)
 
-SOFT_LORENZ_GAUGE : add (gaugefixpar/2)\sum_{x}[\sum_{mu} \partial_{mu} theta_{x,mu}]^2 to the energy
+SOFT_LORENZ_GAUGE : add (gaugefixpar/2)\sum_{x}[\sum_{mu}(theta_{x,mu}-theta_{x-mu,mu})]^2 to the energy
 
 LINKS_FIXED_TO_ONE : fix all gauge fields theta to zero
 

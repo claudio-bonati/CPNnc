@@ -113,13 +113,6 @@ void compute_gauge_correlators(Conf const * const GC,
                                double *tildeG3_pmin,
                                double *disc_p0,
                                double *disc_pmin);
-void local_fix_lorenz_gauge(Conf *GC,
-                            Geometry const * const geo,
-                            GParam const * const param,
-                            long int r);
-void fix_lorenz_gauge_locmin(Conf *GC,
-                             GParam const * const param,
-                             Geometry const * const geo);
 void matrix_apply(double *out,
                   double const * const in,
                   GParam const * const param,

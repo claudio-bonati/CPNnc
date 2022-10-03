@@ -131,6 +131,8 @@ double higgs_interaction(Conf const * const GC,
   double aux, ris=0.0;
   Vec v1;
 
+  zero_Vec(&v1);
+
   for(r=0; r<(param->d_volume); r++)
      {
      aux=0.0;
@@ -163,7 +165,7 @@ double higgs_interaction(Conf const * const GC,
   return ris;
   }
 
-// compute \sum_{mu}\partial_{\mu} theta_{\mu}
+// compute \sum_{mu}(theta_{r,\mu}-theta_{r-mu,mu})
 double local_gauge_div(Conf const * const GC,
                        Geometry const * const geo,
                        long int r)
@@ -175,11 +177,11 @@ double local_gauge_div(Conf const * const GC,
    for(i=0; i<STDIM; i++)
       {
       #ifdef CSTAR_BC
-        ris += bcsitep(geo, r, i)*(GC->theta[nnp(geo, r, i)][i]);
-        ris -= GC->theta[r][i];
+        ris += GC->theta[r][i];
+        ris -= bcsitem(geo, r, i)*(GC->theta[nnm(geo, r, i)][i]);
       #else
-        ris += GC->theta[nnp(geo, r, i)][i];
-        ris -= GC->theta[r][i];
+        ris += GC->theta[r][i];
+        ris -= GC->theta[nnm(geo, r, i)][i];
       #endif
       }
 
@@ -342,118 +344,6 @@ void compute_gauge_correlators(Conf const * const GC,
 
   *disc_p0=forG3_p0*param->d_inv_vol;
   *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
-  }
-
-
-// this function locally minimize the value of the lorenz gauge functional
-void local_fix_lorenz_gauge(Conf *GC,
-                            Geometry const * const geo,
-                            GParam const * const param,
-                            long int r)
-  {
-  #ifdef DEBUG
-    double test1, test2, test1new, test2new;
-
-    test1=plaquettesq(GC, geo, param);
-    test2=lorenz_gauge_violation(GC, geo, param);
-  #else
-    (void) param;
-  #endif
-
-  int j;
-  double alpha;
-
-  #ifdef CSTAR_BC
-    alpha=((double)STDIM)*local_gauge_div(GC, geo, r);
-    for(j=0; j<STDIM; j++)
-       {
-       alpha-=bcsitem(geo, r, j)*2.0*local_gauge_div(GC, geo, nnm(geo, r, j));
-       }
-    for(j=0; j<STDIM; j++)
-       {
-       alpha+=bcsitem(geo, r, j)*bcsitem(geo, nnm(geo, r, j), j)*local_gauge_div(GC, geo, nnm(geo, nnm(geo, r, j), j));
-       }
-    alpha/=((double)STDIM);
-    alpha/=((double)STDIM+5.0);
-
-    for(j=0; j<STDIM; j++)
-       {
-       GC->theta[r][j]+=alpha;
-       GC->theta[nnm(geo, r, j)][j]-=alpha*bcsitem(geo, r, j);
-       }
-  #else
-    alpha=((double)STDIM)*local_gauge_div(GC, geo, r);
-    for(j=0; j<STDIM; j++)
-       {
-       alpha-=2.0*local_gauge_div(GC, geo, nnm(geo, r, j));
-       }
-    for(j=0; j<STDIM; j++)
-       {
-       alpha+=local_gauge_div(GC, geo, nnm(geo, nnm(geo, r, j), j));
-       }
-    alpha/=((double)STDIM);
-    alpha/=((double)STDIM+5.0);
-
-    for(j=0; j<STDIM; j++)
-       {
-       GC->theta[r][j]+=alpha;
-       GC->theta[nnm(geo, r, j)][j]-=alpha;
-       }
-  #endif
-
-
-  #ifdef DEBUG
-  test1new=plaquettesq(GC, geo, param);
-  test2new=lorenz_gauge_violation(GC, geo, param);
-
-  if(fabs(test1-test1new)>MIN_VALUE)
-    {
-    fprintf(stderr, "Problem in plaquettes in local_fix_lorenz_gauge (%s, %d)\n", __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-    }
-
-  if(test2new>test2+MIN_VALUE)
-    {
-    fprintf(stderr, "Problem in minimization in local_fix_lorenz_gauge (%s, %d)\n", __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-    }
-  //printf("\t %g\n", test2new-test2);
-  #endif
-  }
-
-
-// fix lorenz gauge using local minimization
-void fix_lorenz_gauge_locmin(Conf *GC,
-                              GParam const * const param,
-                              Geometry const * const geo)
-  {
-  double test;
-  long int r;
-  const double soglia=MIN_VALUE*sqrt((double)param->d_volume);
-
-  test=lorenz_gauge_violation(GC, geo, param);
-
-  long int i=0;
-  while(test>soglia)
-       {
-       for(r=0; r<param->d_volume; r++)
-          {
-          local_fix_lorenz_gauge(GC, geo, param, r);
-          }
-
-       test=lorenz_gauge_violation(GC, geo, param);
-       #ifdef DEBUG
-         if(i%1000==0)
-           {
-           printf("%ld %g\n", i, test/soglia);
-           }
-       #endif
-       i++;
-       }
-  #ifdef DEBUG
-    printf("%ld %g\n", i, test/soglia);
-    fflush(stdout);
-  #endif
   }
 
 
@@ -852,7 +742,6 @@ void perform_measures(Conf *GC,
      Conf GCbis;
 
      init_conf_from_conf(&GCbis, GC, param);
-     //fix_lorenz_gauge_locmin(&GCbis, param, geo);
      fix_lorenz_gauge_conjgrad(&GCbis, param, geo);
 
 

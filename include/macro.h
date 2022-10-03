@@ -9,11 +9,11 @@
 
 //#define HARD_TEMPORAL_GAUGE  // fix theta=0 on temporal links
 
+//#define SOFT_TEMPORAL_GAUGE  // add (alpha/2)\sum_r theta_{r,0}^2 to the energy
+
 //#define HARD_LORENZ_GAUGE  // fix lorenz gauge in measures
 
-//#define SOFT_LORENZ_GAUGE // add (alpha/2)(\sum_{mu} \partial_{mu} theta_{mu})^2 to the energy
-
-//#define SOFT_TEMPORAL_GAUGE  // add (alpha/2) theta_{0}^2 to the energy
+//#define SOFT_LORENZ_GAUGE // add (alpha/2)\sum_r(\sum_{mu}[theta_{r,mu}-theta_{r-mu,mu}])^2 to the energy
 
 //#define LINKS_FIXED_TO_ONE  //to remove gauge fields
 
