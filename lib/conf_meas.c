@@ -354,12 +354,12 @@ void matrix_apply(double *out,
                   Geometry const * const geo)
   {
   int i, j;
-  long r, r1, r2, r3;
+  long r, r1;
   double tmp;
 
   for(r=0; r<param->d_volume; r++)
      {
-     out[r]=STDIM*STDIM*in[r];
+     out[r]=4*STDIM*STDIM*in[r];
 
      tmp=0.0;
      for(i=0; i<STDIM; i++)
@@ -370,7 +370,7 @@ void matrix_apply(double *out,
           tmp+=in[nnp(geo, r, i)];
         #endif
         }
-     out[r]-=2.0*STDIM*tmp;
+     out[r]-=4.0*STDIM*tmp;
 
      tmp=0.0;
      for(i=0; i<STDIM; i++)
@@ -381,32 +381,9 @@ void matrix_apply(double *out,
           tmp+=in[nnm(geo, r, i)];
         #endif
         }
-     out[r]-=2.0*STDIM*tmp;
+     out[r]-=4.0*STDIM*tmp;
 
-     tmp=0.0;
-     for(i=0; i<STDIM; i++)
-        {
-        r1=nnp(geo, r, i);
-        #ifdef CSTAR_BC
-           tmp+=bcsitep(geo, r, i)*bcsitep(geo, r1, i)*in[nnp(geo, r1, i)];
-        #else
-          tmp+=in[nnp(geo, r1, i)];
-        #endif
-        }
-     out[r]+=STDIM*tmp;
-
-     tmp=0.0;
-     for(i=0; i<STDIM; i++)
-        {
-        r1=nnm(geo, r, i);
-        #ifdef CSTAR_BC
-          tmp+=bcsitem(geo, r, i)*bcsitem(geo, r1, i)*in[nnm(geo, r1, i)];
-        #else
-          tmp+=in[nnm(geo, r1, i)];
-        #endif
-        }
-     out[r]+=STDIM*tmp;
-
+     // +i -j
      tmp=0.0;
      for(i=0; i<STDIM; i++)
         {
@@ -420,52 +397,51 @@ void matrix_apply(double *out,
            #endif
            }
         }
-     out[r]+=4*tmp;
+     out[r]+=tmp;
 
+     // +i+j
      tmp=0.0;
      for(i=0; i<STDIM; i++)
         {
         r1=nnp(geo, r, i);
-        r2=nnp(geo, r1, i);
         for(j=0; j<STDIM; j++)
            {
            #ifdef CSTAR_BC
-             tmp+=bcsitep(geo, r, i)*bcsitep(geo, r1, i)*bcsitem(geo, r2, j)*in[nnm(geo, r2, j)];
+             tmp+=bcsitep(geo, r, i)*bcsitep(geo, r1, j)*in[nnp(geo, r1, j)];
            #else
-             tmp+=in[nnm(geo, r2, j)];
+             tmp+=in[nnp(geo, r1, j)];
            #endif
            }
         }
-     out[r]-=2*tmp;
+     out[r]+=tmp;
 
+     //-i-j
      tmp=0.0;
-     for(j=0; j<STDIM; j++)
+     for(i=0; i<STDIM; i++)
         {
-        r1=nnm(geo, r, j);
-        r2=nnm(geo, r1, j);
-        for(i=0; i<STDIM; i++)
+        r1=nnm(geo, r, i);
+        for(j=0; j<STDIM; j++)
            {
            #ifdef CSTAR_BC
-             tmp+=bcsitem(geo, r, j)*bcsitem(geo, r1, j)*bcsitep(geo, r2, i)*in[nnp(geo, r2, i)];
+             tmp+=bcsitem(geo, r, i)*bcsitem(geo, r1, j)*in[nnm(geo, r1, j)];
            #else
-             tmp+=in[nnp(geo, r2, i)];
+             tmp+=in[nnm(geo, r1, j)];
            #endif
            }
         }
-     out[r]-=2*tmp;
+     out[r]+=tmp;
 
+     // -i+j
      tmp=0.0;
-     for(j=0; j<STDIM; j++)
+     for(i=0; i<STDIM; i++)
         {
-        r1=nnm(geo, r, j);
-        r2=nnm(geo, r1, j);
-        for(i=0; i<STDIM; i++)
+        r1=nnm(geo, r, i);
+        for(j=0; j<STDIM; j++)
            {
-           r3=nnp(geo, r2, i);
            #ifdef CSTAR_BC
-             tmp+=bcsitem(geo, r, j)*bcsitem(geo, r1, j)*bcsitep(geo, r2, i)*bcsitep(geo, r3, i)*in[nnp(geo, r3, i)];
+             tmp+=bcsitem(geo, r, i)*bcsitep(geo, r1, j)*in[nnp(geo, r1, j)];
            #else
-             tmp+=in[nnp(geo, r3, i)];
+             tmp+=in[nnp(geo, r1, j)];
            #endif
            }
         }
@@ -601,7 +577,7 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
                                Geometry const * const geo)
   {
   int i, err;
-  long int r, r1;
+  long int r;
   double *aux, *b, *sol;
   const double soglia=MIN_VALUE*sqrt((double)param->d_volume);
   double sogliaCG, test;
@@ -642,17 +618,15 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
   // b is the r.h.s. of the linear equation to be solved
   for(r=0; r<param->d_volume; r++)
      {
-     b[r]=STDIM*aux[r];
+     b[r]=-2*STDIM*aux[r];
      for(i=0; i<STDIM; i++)
         {
         #ifdef CSTAR_BC
-          r1=nnm(geo,r,i);
-          b[r]-=2*aux[r1]*bcsitem(geo, r, i);
-          b[r]+=aux[nnm(geo, r1, i)]*bcsitem(geo, r, i)*bcsitem(geo,r1, i);
+          b[r]+=bcsitep(geo,r,i)*aux[nnp(geo, r, i)];
+          b[r]+=bcsitem(geo,r,i)*aux[nnm(geo, r, i)];
         #else
-          r1=nnm(geo,r,i);
-          b[r]-=2*aux[r1];
-          b[r]+=aux[nnm(geo, r1, i)];
+          b[r]+=aux[nnp(geo, r, i)];
+          b[r]+=aux[nnm(geo, r, i)];
         #endif
         }
      }
