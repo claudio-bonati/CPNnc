@@ -1,6 +1,5 @@
 AC_PREREQ([2.59])
-AC_INIT([cpn_nc], [0.4.2], [claudio.bonati82@gmail.com])
-:w
+AC_INIT([cpn_nc], [0.4.3], [claudio.bonati82@gmail.com])
 AM_INIT_AUTOMAKE(subdir-objects)
 AC_CONFIG_SRCDIR([./include/macro.h])
 AC_CONFIG_HEADERS([config.h])
