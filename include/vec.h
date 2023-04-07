@@ -96,6 +96,56 @@ inline void equal_cc_Vec(Vec * restrict A, Vec const * const restrict B)
   }
 
 
+// A=Re(B)
+inline void repart_Vec(Vec * restrict A, Vec const * const restrict B)
+  {
+  #ifdef DEBUG
+  if(A==B)
+    {
+    fprintf(stderr, "The same pointer is used twice in (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+  #endif
+
+  #ifdef __INTEL_COMPILER
+  __assume_aligned(&(A->comp), DOUBLE_ALIGN);
+  __assume_aligned(&(B->comp), DOUBLE_ALIGN);
+  #endif
+
+  int i;
+
+  for(i=0; i<NFLAVOUR; i++)
+     {
+     A->comp[i]=creal(B->comp[i]);
+     }
+  }
+
+
+// A=Im(B)
+inline void impart_Vec(Vec * restrict A, Vec const * const restrict B)
+  {
+  #ifdef DEBUG
+  if(A==B)
+    {
+    fprintf(stderr, "The same pointer is used twice in (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+    }
+  #endif
+
+  #ifdef __INTEL_COMPILER
+  __assume_aligned(&(A->comp), DOUBLE_ALIGN);
+  __assume_aligned(&(B->comp), DOUBLE_ALIGN);
+  #endif
+
+  int i;
+
+  for(i=0; i<NFLAVOUR; i++)
+     {
+     A->comp[i]=cimag(B->comp[i]);
+     }
+  }
+
+
 // A+=B
 inline void plus_equal_Vec(Vec * restrict A, Vec const * const restrict B)
   {

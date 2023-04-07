@@ -280,6 +280,10 @@ void compute_flavour_observables(Conf const * const GC,
 // disc_p0=[\sum_x B_x]/volume
 // disc_pmin=Re[\sum_x B_x e^{i*p_min*x}]/volume
 //
+// C(r)=Re(phi[r])+e^{ip1*x}Im(phi[r]) is periodic
+// tildeG4_p0=rescalprod[(\sum_x C_x),(\sum_y C_y)]/volume
+// tildeG4_pmin=rescalprod[(\sum_x C_xe^{i p_min*x}),(\sum_y C_ye^{-ip_min*y)]/volume
+//
 void compute_gauge_correlators(Conf const * const GC,
                                GParam const * const param,
                                double *tildeG1_p1,
@@ -289,12 +293,15 @@ void compute_gauge_correlators(Conf const * const GC,
                                double *tildeG3_p0,
                                double *tildeG3_pmin,
                                double *disc_p0,
-                               double *disc_pmin)
+                               double *disc_pmin,
+                               double *tildeG4_p0,
+                               double *tildeG4_pmin)
   {
   int i, coord[STDIM];
   long r;
-  double p1[STDIM], sc, B, forG3_p0;
+  double p1[STDIM], sc, sc2, B, forG3_p0;
   double complex forG1_p1, forG1_p2, forG2_p1, forG2_p2, forG3_pmin;
+  Vec forG4_p0, forG4_pmin, revec, imvec;
 
   for(i=0; i<STDIM; i++)
      {
@@ -307,6 +314,8 @@ void compute_gauge_correlators(Conf const * const GC,
   forG2_p2=0.0+I*0.0;
   forG3_p0=0.0+I*0.0;
   forG3_pmin=0.0+I*0.0;
+  zero_Vec(&forG4_p0);
+  zero_Vec(&forG4_pmin);
 
   for(r=0; r<(param->d_volume); r++)
      {
@@ -320,9 +329,9 @@ void compute_gauge_correlators(Conf const * const GC,
      forG1_p1+=GC->theta[r][0]*cexp(I*sc);
      forG2_p1+=GC->theta[r][1]*cexp(I*sc);
 
-     sc+=2.0*PI/param->d_size[0]*coord[0];
-     forG1_p2+=GC->theta[r][0]*cexp(I*sc);
-     forG2_p2+=GC->theta[r][1]*cexp(I*sc);
+     sc2=sc+2.0*PI/param->d_size[0]*coord[0];
+     forG1_p2+=GC->theta[r][0]*cexp(I*sc2);
+     forG2_p2+=GC->theta[r][1]*cexp(I*sc2);
 
      B=0;
      for(i=0; i<STDIM; i++)
@@ -331,6 +340,14 @@ void compute_gauge_correlators(Conf const * const GC,
         }
      forG3_p0+=B;
      forG3_pmin+=B*cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]);
+
+     repart_Vec(&revec, &(GC->phi[r]));
+     impart_Vec(&imvec, &(GC->phi[r]));
+     times_equal_complex_Vec(&imvec, cexp(I*sc));
+     plus_equal_Vec(&revec, &imvec); // now revec=Re[phi]+e^{ip1*r}Im[phi]
+     plus_equal_Vec(&forG4_p0, &revec);
+     times_equal_complex_Vec(&revec, cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]) );
+     plus_equal_Vec(&forG4_pmin, &revec);
      }
 
   *tildeG1_p1=creal(forG1_p1*conj(forG1_p1))*param->d_inv_vol;
@@ -344,6 +361,9 @@ void compute_gauge_correlators(Conf const * const GC,
 
   *disc_p0=forG3_p0*param->d_inv_vol;
   *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
+
+  *tildeG4_p0=scal_prod_Vec(&forG4_p0, &forG4_p0)*param->d_inv_vol;
+  *tildeG4_pmin=scal_prod_Vec(&forG4_pmin, &forG4_pmin)*param->d_inv_vol;
   }
 
 
@@ -695,7 +715,7 @@ void perform_measures(Conf *GC,
 
    double tildeG0, tildeGminp;
    double scalar_coupling, plaqsq;
-   double meas[8];
+   double meas[10];
 
    for(r=0; r<(param->d_volume); r++)
       {
@@ -729,7 +749,10 @@ void perform_measures(Conf *GC,
                                &meas[4],
                                &meas[5],
                                &meas[6],
-                               &meas[7]);
+                               &meas[7],
+                               &meas[8],
+                               &meas[9]);
+
 
      free_conf(&GCbis, param);
    #else
@@ -743,10 +766,12 @@ void perform_measures(Conf *GC,
                                &meas[4],
                                &meas[5],
                                &meas[6],
-                               &meas[7]);
+                               &meas[7],
+                               &meas[8],
+                               &meas[9]);
    #endif
 
-   for(i=0; i<8; i++)
+   for(i=0; i<10; i++)
       {
       fprintf(datafilep, "%.12g ", meas[i]);
       }

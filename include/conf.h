@@ -112,7 +112,9 @@ void compute_gauge_correlators(Conf const * const GC,
                                double *tildeG3_p0,
                                double *tildeG3_pmin,
                                double *disc_p0,
-                               double *disc_pmin);
+                               double *disc_pmin,
+                               double *tildeG4_p0,
+                               double *tildeG4_pmin);
 void matrix_apply(double *out,
                   double const * const in,
                   GParam const * const param,
