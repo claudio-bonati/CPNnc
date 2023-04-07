@@ -362,8 +362,8 @@ void compute_gauge_correlators(Conf const * const GC,
   *disc_p0=forG3_p0*param->d_inv_vol;
   *disc_pmin=creal(forG3_pmin)*param->d_inv_vol;
 
-  *tildeG4_p0=scal_prod_Vec(&forG4_p0, &forG4_p0)*param->d_inv_vol;
-  *tildeG4_pmin=scal_prod_Vec(&forG4_pmin, &forG4_pmin)*param->d_inv_vol;
+  *tildeG4_p0=creal(scal_prod_Vec(&forG4_p0, &forG4_p0))*param->d_inv_vol;
+  *tildeG4_pmin=creal(scal_prod_Vec(&forG4_pmin, &forG4_pmin))*param->d_inv_vol;
   }
 
 
