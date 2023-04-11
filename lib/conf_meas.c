@@ -689,8 +689,11 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
                GC->theta[r][i]-=sol[nnp(geo, r, i)];
              #endif
              }
+          times_equal_complex_Vec(&(GC->phi[r]), cexp(I*sol[r]));
           }
+
        test=lorenz_gauge_violation(GC, geo, param);
+
        sogliaCG/=25.0;
        }
 
