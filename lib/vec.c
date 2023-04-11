@@ -27,11 +27,14 @@ void equal_Vec(Vec * restrict A, Vec const * const restrict B);
 // A=conj(B)
 void equal_cc_Vec(Vec * restrict A, Vec const * const restrict B);
 
+
 // A=Re(B)
 void repart_Vec(Vec * restrict A, Vec const * const restrict B);
 
+
 // A=Im(B)
 void impart_Vec(Vec * restrict A, Vec const * const restrict B);
+
 
 // A+=B
 void plus_equal_Vec(Vec * restrict A, Vec const * const restrict B);

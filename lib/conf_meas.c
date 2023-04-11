@@ -297,12 +297,18 @@ void compute_gauge_correlators(Conf const * const GC,
                                double *tildeG4_p0,
                                double *tildeG4_pmin)
   {
+  #ifndef CSTAR_BC
+    fprintf(stderr, "This function can be used only with C* b.c.! (%s, %d)\n", __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  #endif
+
   int i, coord[STDIM];
   long r;
   double p1[STDIM], sc, sc2, B, forG3_p0;
   double complex forG1_p1, forG1_p2, forG2_p1, forG2_p2, forG3_pmin;
   Vec forG4_p0, forG4_pmin, revec, imvec;
 
+  // min momentum for antiperiodic boundary conditions
   for(i=0; i<STDIM; i++)
      {
      p1[i]=PI/(double)param->d_size[i];
@@ -326,10 +332,13 @@ void compute_gauge_correlators(Conf const * const GC,
         {
         sc+=coord[i]*p1[i];
         }
+
      forG1_p1+=GC->theta[r][0]*cexp(I*sc);
      forG2_p1+=GC->theta[r][1]*cexp(I*sc);
 
+     // momentum p1+(2pi/L,0....0)
      sc2=sc+2.0*PI/param->d_size[0]*coord[0];
+
      forG1_p2+=GC->theta[r][0]*cexp(I*sc2);
      forG2_p2+=GC->theta[r][1]*cexp(I*sc2);
 
@@ -344,7 +353,7 @@ void compute_gauge_correlators(Conf const * const GC,
      repart_Vec(&revec, &(GC->phi[r]));
      impart_Vec(&imvec, &(GC->phi[r]));
      times_equal_complex_Vec(&imvec, cexp(I*sc));
-     plus_equal_Vec(&revec, &imvec); // now revec=Re[phi]+e^{ip1*r}Im[phi]
+     plus_equal_Vec(&revec, &imvec); // now revec=Re[phi]+e^{i*p1*r}Im[phi]
      plus_equal_Vec(&forG4_p0, &revec);
      times_equal_complex_Vec(&revec, cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]) );
      plus_equal_Vec(&forG4_pmin, &revec);
