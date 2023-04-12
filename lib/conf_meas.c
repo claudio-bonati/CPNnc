@@ -352,8 +352,8 @@ void compute_gauge_correlators(Conf const * const GC,
 
      repart_Vec(&revec, &(GC->phi[r]));
      impart_Vec(&imvec, &(GC->phi[r]));
-     times_equal_complex_Vec(&imvec, cexp(I*sc));
-     plus_equal_Vec(&revec, &imvec); // now revec=Re[phi]+e^{i*p1*r}Im[phi]
+     times_equal_complex_Vec(&imvec, I*cexp(I*sc));
+     plus_equal_Vec(&revec, &imvec); // now revec=Re[phi]+e^{i*p1*r}I*Im[phi]
      plus_equal_Vec(&forG4_p0, &revec);
      times_equal_complex_Vec(&revec, cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]) );
      plus_equal_Vec(&forG4_pmin, &revec);
