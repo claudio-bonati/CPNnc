@@ -267,16 +267,8 @@ void rand_vec_Vec(Vec * restrict A);
 
 
 // scalar product v_1^{\dag}v_2
-inline double complex scal_prod_Vec(Vec const * const restrict A, Vec const * const restrict B)
+inline double complex scal_prod_Vec(Vec const * const A, Vec const * const B)
   {
-  #ifdef DEBUG
-  if(A==B)
-    {
-    fprintf(stderr, "The same pointer is used twice in (%s, %d)\n", __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-    }
-  #endif
-
   #ifdef __INTEL_COMPILER
   __assume_aligned(&(A->comp), DOUBLE_ALIGN);
   __assume_aligned(&(B->comp), DOUBLE_ALIGN);

@@ -79,7 +79,7 @@ void rand_vec_Vec(Vec * restrict A)
 
 
 // scalar product v_1^{\dag}v_2
-double complex scal_prod_Vec(Vec const * const restrict A, Vec const * const restrict B);
+double complex scal_prod_Vec(Vec const * const A, Vec const * const B);
 
 
 // random rotation close to identity

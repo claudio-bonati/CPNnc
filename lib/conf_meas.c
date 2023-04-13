@@ -280,7 +280,7 @@ void compute_flavour_observables(Conf const * const GC,
 // disc_p0=[\sum_x B_x]/volume
 // disc_pmin=Re[\sum_x B_x e^{i*p_min*x}]/volume
 //
-// C(r)=Re(phi[r])+e^{ip1*x}Im(phi[r]) is periodic
+// C(r)=Re(phi[r])+Ie^{ip1*x}Im(phi[r]) is periodic
 // tildeG4_p0=rescalprod[(\sum_x C_x),(\sum_y C_y)]/volume
 // tildeG4_pmin=rescalprod[(\sum_x C_xe^{i p_min*x}),(\sum_y C_ye^{-ip_min*y)]/volume
 //
