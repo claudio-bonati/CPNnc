@@ -306,7 +306,7 @@ void compute_gauge_correlators(Conf const * const GC,
   long r;
   double p1[STDIM], sc, sc2, B, forG3_p0;
   double complex forG1_p1, forG1_p2, forG2_p1, forG2_p2, forG3_pmin;
-  Vec forG4_p0, forG4_pmin, revec, imvec;
+  Vec forG4_p0, forG4_pmin, tmpvec;
 
   // min momentum for antiperiodic boundary conditions
   for(i=0; i<STDIM; i++)
@@ -350,13 +350,10 @@ void compute_gauge_correlators(Conf const * const GC,
      forG3_p0+=B;
      forG3_pmin+=B*cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]);
 
-     repart_Vec(&revec, &(GC->phi[r]));
-     impart_Vec(&imvec, &(GC->phi[r]));
-     times_equal_complex_Vec(&imvec, I*cexp(I*sc));
-     plus_equal_Vec(&revec, &imvec); // now revec=Re[phi]+e^{i*p1*r}I*Im[phi]
-     plus_equal_Vec(&forG4_p0, &revec);
-     times_equal_complex_Vec(&revec, cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]) );
-     plus_equal_Vec(&forG4_pmin, &revec);
+     repart_Vec(&tmpvec, &(GC->phi[r]));
+     plus_equal_Vec(&forG4_p0, &tmpvec);
+     times_equal_complex_Vec(&tmpvec, cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]) );
+     plus_equal_Vec(&forG4_pmin, &tmpvec);
      }
 
   *tildeG1_p1=creal(forG1_p1*conj(forG1_p1))*param->d_inv_vol;
@@ -612,9 +609,10 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
   double sogliaCG, test;
 
   #ifdef DEBUG
-    double test1, test2, test1new;
+    double test1, test2, test1new, test3, test3new;
 
     test1=plaquettesq(GC, geo, param);
+    test3=higgs_interaction(GC, geo, param);
   #endif
 
   err=posix_memalign((void**)&aux, (size_t) DOUBLE_ALIGN, (size_t) param->d_volume * sizeof(double));
@@ -700,8 +698,15 @@ void fix_lorenz_gauge_conjgrad(Conf *GC,
   #ifdef DEBUG
     test1new=plaquettesq(GC, geo, param);
     test2=lorenz_gauge_violation(GC, geo, param);
+    test3new=higgs_interaction(GC, geo, param);
 
     if(fabs(test1-test1new)>MIN_VALUE)
+      {
+      fprintf(stderr, "Problems in fix_lorenz_gauge_conjgrad! (%s, %d)\n", __FILE__, __LINE__);
+      exit(EXIT_FAILURE);
+      }
+
+   if(fabs(test3-test3new)>MIN_VALUE)
       {
       fprintf(stderr, "Problems in fix_lorenz_gauge_conjgrad! (%s, %d)\n", __FILE__, __LINE__);
       exit(EXIT_FAILURE);
