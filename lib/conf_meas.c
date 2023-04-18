@@ -350,7 +350,7 @@ void compute_gauge_correlators(Conf const * const GC,
      forG3_p0+=B;
      forG3_pmin+=B*cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]);
 
-     repart_Vec(&tmpvec, &(GC->phi[r]));
+     equal_Vec(&tmpvec, &(GC->phi[r]));
      plus_equal_Vec(&forG4_p0, &tmpvec);
      times_equal_complex_Vec(&tmpvec, cexp(I*((double) coord[0])*2.0*PI/(double)param->d_size[0]) );
      plus_equal_Vec(&forG4_pmin, &tmpvec);
