@@ -70,11 +70,17 @@ int metropolis_for_link(Conf *GC,
                         GParam const * const param,
                         long r,
                         int i);
+int metropolis_for_link_twopi(Conf *GC,
+                        Geometry const * const geo,
+                        GParam const * const param,
+                        long r,
+                        int i);
 void update(Conf * GC,
             Geometry const * const geo,
             GParam const * const param,
             double *acc_site,
-            double *acc_link);
+            double *acc_link,
+            double *acc_link_twopi);
 
 // in conf_meas.c
 double plaquette_single(Conf const * const GC,

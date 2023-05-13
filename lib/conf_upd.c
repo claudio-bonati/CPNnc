@@ -404,18 +404,161 @@ int metropolis_for_link(Conf *GC,
   }
 
 
+// perform an update with metropolis of the link variables of 2pi step
+// return 0 if the trial state is rejected and 1 otherwise
+int metropolis_for_link_twopi(Conf *GC,
+                        Geometry const * const geo,
+                        GParam const * const param,
+                        long r,
+                        int i)
+  {
+  double old_energy, new_energy;
+  double old_theta, new_theta;
+  double complex sc;
+  double pstaple;
+  double tmp;
+  int shift, maxshift=2;
+  int acc=0;
+
+  #ifdef SOFT_LORENZ_GAUGE
+  double lstaple=lorenzstaples_for_link(GC, geo, r, i);
+  #endif
+
+  Vec v1;
+
+  #ifdef CSTAR_BC
+    if(bcsitep(geo, r, i)==1)
+      {
+      equal_Vec(&v1, &(GC->phi[nnp(geo,r,i)]));
+      }
+    else
+      {
+      equal_cc_Vec(&v1, &(GC->phi[nnp(geo,r,i)]));
+      }
+  #else
+    equal_Vec(&v1, &(GC->phi[nnp(geo,r,i)]));
+  #endif
+
+  sc=scal_prod_Vec(&(GC->phi[r]), &v1);
+
+  old_theta=GC->theta[r][i];
+
+  if(fabs(param->d_K)>MIN_VALUE)
+    {
+    pstaple=plaqstaples_for_link(GC, geo, r, i);
+    }
+  else
+    {
+    pstaple=0.0;
+    }
+
+  old_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*old_theta) );
+  old_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*old_theta*old_theta + 2.0*old_theta*pstaple);
+  // we used sum (plaq)^2 = 2*(STDIM-1)*theta^2 + 2*theta*plaqstaple + independent of theta
+  old_energy+=0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
+  #ifdef SOFT_LORENZ_GAUGE
+    // sum_x (sum_i[\theta_{x,i}-theta_{x-i,i}])^2 = 2 theta^2 + 2*theta*lorenzstap + indip. theta
+    old_energy+= param->d_gaugefixpar * old_theta*old_theta + param->d_gaugefixpar*old_theta*lstaple;
+  #endif
+  #ifdef SOFT_TEMPORAL_GAUGE
+    if(i==0)
+      {
+      old_energy+= (param->d_gaugefixpar/2.0)*old_theta*old_theta;
+      }
+  #endif
+
+  if(casuale()>0.5)
+    {
+    tmp=1;
+    }
+  else
+    {
+    tmp=-1;
+    }
+  shift=1+(int)((double)(maxshift+0.1)*casuale());
+  new_theta = old_theta + tmp*PI2*(double)shift;
+
+  new_energy=-2.0*(double)NFLAVOUR*(param->d_J)*creal(sc*cexp(I*new_theta) );
+  new_energy+=0.5*param->d_K*(2.0*((double)STDIM-1.0)*new_theta*new_theta + 2.0*new_theta*pstaple);
+  new_energy+=0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
+  #ifdef SOFT_LORENZ_GAUGE
+    new_energy+= param->d_gaugefixpar*new_theta*new_theta + param->d_gaugefixpar*new_theta*lstaple;
+  #endif
+  #ifdef SOFT_TEMPORAL_GAUGE
+    if(i==0)
+      {
+      new_energy+= (param->d_gaugefixpar/2.0)*new_theta*new_theta;
+      }
+  #endif
+
+  #ifdef DEBUG
+    double old_energy_aux, new_energy_aux;
+    old_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
+    old_energy_aux +=(0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
+    old_energy_aux += 0.5 * param->d_phmass * param->d_phmass * old_theta * old_theta;
+    #ifdef SOFT_LORENZ_GAUGE
+      old_energy_aux += 0.5 * param->d_gaugefixpar * lorenz_gauge_violation(GC, geo, param);
+    #endif
+    #ifdef SOFT_TEMPORAL_GAUGE
+      if(i==0)
+        {
+        old_energy_aux += (param->d_gaugefixpar/2.0)*old_theta*old_theta;
+        }
+    #endif
+
+    GC->theta[r][i] = new_theta;
+    new_energy_aux = -2.0 * (double)NFLAVOUR *(param->d_J)*higgs_interaction(GC, geo, param)*(double)STDIM * (double)param->d_volume;
+    new_energy_aux += (0.5*param->d_K)*plaquettesq(GC, geo, param)*(double)STDIM*((double)STDIM-1.0)/2.0 *(double) param->d_volume;
+    new_energy_aux += 0.5 * param->d_phmass * param->d_phmass * new_theta * new_theta;
+    #ifdef SOFT_LORENZ_GAUGE
+      new_energy_aux += 0.5 * param->d_gaugefixpar * lorenz_gauge_violation(GC, geo, param);
+    #endif
+    #ifdef SOFT_TEMPORAL_GAUGE
+      if(i==0)
+        {
+        new_energy_aux += (param->d_gaugefixpar/2.0)*new_theta*new_theta;
+        }
+    #endif
+    GC->theta[r][i] = old_theta;
+
+    //printf("%g %g\n", old_energy-new_energy, old_energy-new_energy -(old_energy_aux-new_energy_aux));
+    if(fabs(old_energy-new_energy -(old_energy_aux-new_energy_aux))>1.0e-10 )
+      {
+      fprintf(stderr, "Problem in energy in metropolis for link %g (%s, %d)\n", fabs(old_energy-new_energy -(old_energy_aux-new_energy_aux)), __FILE__, __LINE__);
+      exit(EXIT_FAILURE);
+      }
+  #endif
+
+  if(old_energy>new_energy)
+    {
+    GC->theta[r][i] = new_theta;
+    acc=1;
+    }
+  else if(casuale()< exp(old_energy-new_energy) )
+         {
+         GC->theta[r][i] = new_theta;
+         acc=1;
+         }
+
+  return acc;
+  }
+
+
 // perform a complete update
 void update(Conf * GC,
             Geometry const * const geo,
             GParam const * const param,
             double *acc_site,
-            double *acc_link)
+            double *acc_link,
+            double *acc_link_twopi)
    {
-   long r, asum_site, asum_link;
+   long r, asum_site, asum_link, asum_link_twopi;
    int j, dir;
 
    // metropolis on links
    asum_link=0;
+   asum_link_twopi=0;
+
    #ifndef LINKS_FIXED_TO_ONE
      #ifndef HARD_TEMPORAL_GAUGE
      for(r=0; r<param->d_volume; r++)
@@ -423,6 +566,7 @@ void update(Conf * GC,
         for(dir=0; dir<STDIM; dir++)
            {
            asum_link+=metropolis_for_link(GC, geo, param, r, dir);
+           asum_link_twopi+=metropolis_for_link_twopi(GC, geo, param, r, dir);
            }
         }
      #else
@@ -431,16 +575,20 @@ void update(Conf * GC,
         for(dir=1; dir<STDIM; dir++)
            {
            asum_link+=metropolis_for_link(GC, geo, param, r, dir);
+           asum_link_twopi+=metropolis_for_link_twopi(GC, geo, param, r, dir);
            }
         }
      #endif
    #endif
    *acc_link=((double)asum_link)*param->d_inv_vol;
+   *acc_link_twopi=((double)asum_link_twopi)*param->d_inv_vol;
 
    #ifndef HARD_TEMPORAL_GAUGE
    *acc_link/=(double)STDIM;
+   *acc_link_twopi/=(double)STDIM;
    #else
    *acc_link/=(double)(STDIM-1);
+   *acc_link_twopi/=(double)(STDIM-1);
    #endif
 
    // metropolis on phi
@@ -465,7 +613,6 @@ void update(Conf * GC,
       {
       unitarize_Vec(&(GC->phi[r]));
       }
-
 
    // this prevents theta to overflow if d_K=0 (no kinetic term for theta) and d_phmass=0
    #if ( !defined(SOFT_LORENZ_GAUGE) && !defined(HARD_LORENZ_GAUGE) )

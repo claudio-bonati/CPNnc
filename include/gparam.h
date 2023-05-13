@@ -50,6 +50,6 @@ void init_derived_constants(GParam *param);
 
 void init_data_file(FILE **dataf, GParam const * const param);
 
-void print_parameters(GParam const * const param, time_t time_start, time_t time_end, double acc_site, double acc_link);
+void print_parameters(GParam const * const param, time_t time_start, time_t time_end, double acc_site, double acc_link, double acc_link_twopi);
 
 #endif

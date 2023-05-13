@@ -23,8 +23,8 @@ void real_main(char *in_file)
     FILE *datafilep;
 
     time_t time1, time2;
-    double acc_link, acc_site;
-    double acc_link_local, acc_site_local;
+    double acc_link, acc_link_twopi, acc_site;
+    double acc_link_local, acc_link_twopi_local, acc_site_local;
 
     // read input file
     readinput(in_file, &param);
@@ -43,6 +43,7 @@ void real_main(char *in_file)
 
     // acceptance
     acc_link=0.0;
+    acc_link_twopi=0.0;
     acc_site=0.0;
 
     // montecarlo
@@ -50,12 +51,13 @@ void real_main(char *in_file)
     // count starts from 1 to avoid problems using %
     for(count=1; count < param.d_sample + 1; count++)
        {
-       update(&GC, &geo, &param, &acc_site_local, &acc_link_local);
+       update(&GC, &geo, &param, &acc_site_local, &acc_link_local, &acc_link_twopi_local);
 
        if(count>param.d_thermal)
          {
          acc_site+=acc_site_local;
          acc_link+=acc_link_local;
+         acc_link_twopi+=acc_link_twopi_local;
          }
 
        if(count<param.d_thermal)
@@ -107,6 +109,8 @@ void real_main(char *in_file)
 
     acc_site/=(double)(param.d_sample-param.d_thermal);
     acc_link/=(double)(param.d_sample-param.d_thermal);
+    acc_link_twopi/=(double)(param.d_sample-param.d_thermal);
+
 
     // close data file
     fclose(datafilep);
@@ -118,7 +122,7 @@ void real_main(char *in_file)
       }
 
     // print simulation details
-    print_parameters(&param, time1, time2, acc_site, acc_link);
+    print_parameters(&param, time1, time2, acc_site, acc_link, acc_link_twopi);
 
     // free configuration
     free_conf(&GC, &param);

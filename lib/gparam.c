@@ -362,7 +362,7 @@ void init_data_file(FILE **dataf, GParam const * const param)
 
 
 // print simulation parameters
-void print_parameters(GParam const * const param, time_t time_start, time_t time_end, double acc_site, double acc_link)
+void print_parameters(GParam const * const param, time_t time_start, time_t time_end, double acc_site, double acc_link, double acc_link_twopi)
     {
     FILE *fp;
     int i;
@@ -441,6 +441,7 @@ void print_parameters(GParam const * const param, time_t time_start, time_t time
 
     fprintf(fp, "epsilon_metro_link: %.10lf\n", param->d_epsilon_metro_link);
     fprintf(fp, "metropolis acceptance link: %.10lf\n", acc_link);
+    fprintf(fp, "metropolis acceptance link twopi: %.10lf\n", acc_link_twopi);
     fprintf(fp, "\n");
 
     fprintf(fp, "randseed: %u\n", param->d_randseed);
