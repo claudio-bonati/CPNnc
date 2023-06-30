@@ -98,39 +98,43 @@ void rand_rot_Vec(Vec * restrict A, Vec const * const restrict B, double epsilon
   __assume_aligned(&(B->comp), DOUBLE_ALIGN);
   #endif
 
-  int i, j, counter;
-  double c0, c1, c2, c3, norm;
-  double complex tmp1, tmp2;
+  #if NFLAVOUR==1
+    A->comp[0] = B->comp[0]*cexp(I*(2.0*casuale()-1.0)*epsilon);
+  #else
+    int i, j, counter;
+    double c0, c1, c2, c3, norm;
+    double complex tmp1, tmp2;
 
-  equal_Vec(A, B);
+    equal_Vec(A, B);
 
-  for(counter=0; counter<NFLAVOUR; counter++)
-     {
-     i = (int)(casuale()*((double)NFLAVOUR - MIN_VALUE));
-     j = i + 1 + (int)(casuale()*((double)(NFLAVOUR-1) - MIN_VALUE));
-     j = j % NFLAVOUR;
+    for(counter=0; counter<NFLAVOUR; counter++)
+       {
+       i = (int)(casuale()*((double)NFLAVOUR - MIN_VALUE));
+       j = i + 1 + (int)(casuale()*((double)(NFLAVOUR-1) - MIN_VALUE));
+       j = j % NFLAVOUR;
 
-     tmp1=A->comp[i];
-     tmp2=A->comp[j];
+       tmp1=A->comp[i];
+       tmp2=A->comp[j];
 
-     c0=1.0+(2.0*casuale()-1.0)*epsilon;
-     c1=(2.0*casuale()-1.0)*epsilon;
-     c2=(2.0*casuale()-1.0)*epsilon;
-     c3=(2.0*casuale()-1.0)*epsilon;
-     norm=sqrt(c0*c0+c1*c1+c2*c2+c3*c3);
-     c0/=norm;
-     c1/=norm;
-     c2/=norm;
-     c3/=norm;
+       c0=1.0+(2.0*casuale()-1.0)*epsilon;
+       c1=(2.0*casuale()-1.0)*epsilon;
+       c2=(2.0*casuale()-1.0)*epsilon;
+       c3=(2.0*casuale()-1.0)*epsilon;
+       norm=sqrt(c0*c0+c1*c1+c2*c2+c3*c3);
+       c0/=norm;
+       c1/=norm;
+       c2/=norm;
+       c3/=norm;
 
-     A->comp[i] = (c0+I*c1)*tmp1 -(c2-I*c3)*tmp2;
-     A->comp[j] = (c2+I*c3)*tmp1 +(c0-I*c1)*tmp2;
-     }
+       A->comp[i] = (c0+I*c1)*tmp1 -(c2-I*c3)*tmp2;
+       A->comp[j] = (c2+I*c3)*tmp1 +(c0-I*c1)*tmp2;
+       }
 
-  for(counter=0; counter<NFLAVOUR; counter++)
-     {
-     A->comp[counter] *= cexp(I*(2.0*casuale()-1.0)*epsilon);
-     }
+    for(counter=0; counter<NFLAVOUR; counter++)
+       {
+       A->comp[counter] *= cexp(I*(2.0*casuale()-1.0)*epsilon);
+       }
+  #endif
   }
 
 
@@ -151,34 +155,38 @@ void rand_rot_single_Vec(Vec * restrict A, Vec const * const restrict B, double 
   __assume_aligned(&(B->comp), DOUBLE_ALIGN);
   #endif
 
-  int i, j;
-  double c0, c1, c2, c3, norm;
-  double complex tmp1, tmp2;
-
-  equal_Vec(A, B);
-
-  i = (int)(casuale()*((double)NFLAVOUR - MIN_VALUE));
-  j = i + 1 + (int)(casuale()*((double)(NFLAVOUR-1) - MIN_VALUE));
-  j = j % NFLAVOUR;
-
-  tmp1=A->comp[i];
-  tmp2=A->comp[j];
-
-  c0=1.0+(2.0*casuale()-1.0)*epsilon;
-  c1=(2.0*casuale()-1.0)*epsilon;
-  c2=(2.0*casuale()-1.0)*epsilon;
-  c3=(2.0*casuale()-1.0)*epsilon;
-  norm=sqrt(c0*c0+c1*c1+c2*c2+c3*c3);
-  c0/=norm;
-  c1/=norm;
-  c2/=norm;
-  c3/=norm;
-
-  A->comp[i] = (c0+I*c1)*tmp1 -(c2-I*c3)*tmp2;
-  A->comp[j] = (c2+I*c3)*tmp1 +(c0-I*c1)*tmp2;
-
-  A->comp[i] *= cexp(I*(2.0*casuale()-1.0)*epsilon);
-  A->comp[j] *= cexp(I*(2.0*casuale()-1.0)*epsilon);
+  #if NFLAVOUR==1
+    A->comp[0] = B->comp[0]*cexp(I*(2.0*casuale()-1.0)*epsilon);
+  #else
+    int i, j;
+    double c0, c1, c2, c3, norm;
+    double complex tmp1, tmp2;
+  
+    equal_Vec(A, B);
+  
+    i = (int)(casuale()*((double)NFLAVOUR - MIN_VALUE));
+    j = i + 1 + (int)(casuale()*((double)(NFLAVOUR-1) - MIN_VALUE));
+    j = j % NFLAVOUR;
+  
+    tmp1=A->comp[i];
+    tmp2=A->comp[j];
+  
+    c0=1.0+(2.0*casuale()-1.0)*epsilon;
+    c1=(2.0*casuale()-1.0)*epsilon;
+    c2=(2.0*casuale()-1.0)*epsilon;
+    c3=(2.0*casuale()-1.0)*epsilon;
+    norm=sqrt(c0*c0+c1*c1+c2*c2+c3*c3);
+    c0/=norm;
+    c1/=norm;
+    c2/=norm;
+    c3/=norm;
+  
+    A->comp[i] = (c0+I*c1)*tmp1 -(c2-I*c3)*tmp2;
+    A->comp[j] = (c2+I*c3)*tmp1 +(c0-I*c1)*tmp2;
+  
+    A->comp[i] *= cexp(I*(2.0*casuale()-1.0)*epsilon);
+    A->comp[j] *= cexp(I*(2.0*casuale()-1.0)*epsilon);
+  #endif
   }
 
 
